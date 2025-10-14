@@ -1,0 +1,67 @@
+package store
+
+import (
+	"context"
+	"time"
+
+	"github.com/google/uuid"
+)
+
+// Status mirrors the DB enum.
+type Status string
+
+const (
+	StatusPending   Status = "pending"
+	StatusRunning   Status = "running"
+	StatusCompleted Status = "completed"
+	StatusFailed    Status = "failed"
+	StatusCancelled Status = "cancelled"
+	StatusDead      Status = "dead"
+)
+
+// Job is the in-memory representation of a job row.
+type Job struct {
+	ID          uuid.UUID
+	Name        string
+	Type        string
+	Payload     []byte
+	Status      Status
+	MaxRetries  int
+	RetryCount  int
+	Error       string
+	ScheduledAt time.Time
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+// ListFilter controls ListJobs queries.
+type ListFilter struct {
+	Status    *Status // nil = all statuses
+	PageSize  int
+	PageToken string // opaque cursor (created_at:id)
+}
+
+// Store is the persistence interface for jobs.
+type Store interface {
+	// CreateJob inserts a new job and returns it with ID/timestamps populated.
+	CreateJob(ctx context.Context, j *Job) (*Job, error)
+
+	// GetJob retrieves a job by ID.
+	GetJob(ctx context.Context, id uuid.UUID) (*Job, error)
+
+	// ListJobs returns jobs matching the filter.
+	ListJobs(ctx context.Context, f ListFilter) ([]*Job, string, error)
+
+	// ClaimJobs atomically marks up to n pending/due jobs as running.
+	// Uses SELECT FOR UPDATE SKIP LOCKED.
+	ClaimJobs(ctx context.Context, n int) ([]*Job, error)
+
+	// UpdateStatus sets status (and optionally error) on a job.
+	UpdateStatus(ctx context.Context, id uuid.UUID, status Status, errMsg string) error
+
+	// IncrementRetry bumps retry_count and sets status back to pending with next scheduled_at.
+	IncrementRetry(ctx context.Context, id uuid.UUID, nextRun time.Time) error
+
+	// CancelJob transitions a pending job to cancelled.
+	CancelJob(ctx context.Context, id uuid.UUID) error
+}
