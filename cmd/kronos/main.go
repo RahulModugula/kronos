@@ -14,6 +14,7 @@ import (
 
 	kronosv1 "github.com/rahulmodugula/kronos/gen/kronos/v1"
 	"github.com/rahulmodugula/kronos/internal/api"
+	"github.com/rahulmodugula/kronos/internal/middleware"
 	"github.com/rahulmodugula/kronos/internal/retry"
 	"github.com/rahulmodugula/kronos/internal/scheduler"
 	"github.com/rahulmodugula/kronos/internal/store"
@@ -80,8 +81,14 @@ func main() {
 	pool_.Start(ctx)
 	go sched.Run(ctx)
 
-	// gRPC server
-	grpcServer := grpc.NewServer()
+	// gRPC server — interceptor order: RequestID first so logger and recovery always have an ID
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			middleware.UnaryRequestID(),
+			middleware.UnaryRecovery(log),
+			middleware.UnaryLogger(log),
+		),
+	)
 	kronosv1.RegisterKronosServiceServer(grpcServer, api.New(pgStore, log))
 	reflection.Register(grpcServer)
 
