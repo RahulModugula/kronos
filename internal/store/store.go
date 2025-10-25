@@ -64,4 +64,7 @@ type Store interface {
 
 	// CancelJob transitions a pending job to cancelled.
 	CancelJob(ctx context.Context, id uuid.UUID) error
+
+	// QueueDepth returns the count of pending jobs. Used for Prometheus metrics.
+	QueueDepth(ctx context.Context) (int64, error)
 }

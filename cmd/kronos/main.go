@@ -3,17 +3,21 @@ package main
 import (
 	"context"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
 	kronosv1 "github.com/rahulmodugula/kronos/gen/kronos/v1"
 	"github.com/rahulmodugula/kronos/internal/api"
+	"github.com/rahulmodugula/kronos/internal/metrics"
 	"github.com/rahulmodugula/kronos/internal/middleware"
 	"github.com/rahulmodugula/kronos/internal/retry"
 	"github.com/rahulmodugula/kronos/internal/scheduler"
@@ -32,6 +36,7 @@ func main() {
 
 	dsn := env("DATABASE_URL", "postgres://kronos:kronos@localhost:5432/kronos?sslmode=disable")
 	grpcAddr := env("GRPC_ADDR", ":50051")
+	metricsAddr := env("METRICS_ADDR", ":2112")
 	concurrency := 10
 
 	// Run migrations
@@ -56,32 +61,46 @@ func main() {
 	}
 	log.Info().Msg("connected to postgres")
 
-	// Wire components
+	// Prometheus — use a non-global registry so tests stay isolated
+	promReg := prometheus.NewRegistry()
+	m_ := metrics.New(promReg)
 	pgStore := store.NewPGStore(pool)
+	instrumentedStore := store.NewMetricsStore(pgStore, m_)
+	metrics.RegisterQueueDepthGauge(promReg, pgStore.QueueDepth)
+
+	// Start /metrics HTTP server on a separate port
+	go func() {
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.HandlerFor(promReg, promhttp.HandlerOpts{}))
+		log.Info().Str("addr", metricsAddr).Msg("metrics server listening")
+		if err := http.ListenAndServe(metricsAddr, mux); err != nil {
+			log.Error().Err(err).Msg("metrics server error")
+		}
+	}()
+
+	// Wire worker + scheduler
 	registry := worker.NewRegistry()
 	registerHandlers(registry, log)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	sched := scheduler.New(pgStore, nil, scheduler.Config{
+	// Two-step init: scheduler needs a pool reference, pool needs scheduler's OnComplete.
+	// We break the cycle by passing a pointer-indirection via closure.
+	var sched *scheduler.Scheduler
+	workerPool := worker.NewPool(concurrency, registry, log, func(ctx context.Context, j *store.Job, execErr error) {
+		sched.OnComplete(ctx, j, execErr)
+	})
+	sched = scheduler.New(instrumentedStore, workerPool, scheduler.Config{
 		PollInterval: 2 * time.Second,
 		BatchSize:    10,
 		Backoff:      retry.DefaultConfig,
 	}, log)
 
-	pool_ := worker.NewPool(concurrency, registry, log, sched.OnComplete)
-	// Re-create scheduler with pool wired in (avoid circular init)
-	sched = scheduler.New(pgStore, pool_, scheduler.Config{
-		PollInterval: 2 * time.Second,
-		BatchSize:    10,
-		Backoff:      retry.DefaultConfig,
-	}, log)
-
-	pool_.Start(ctx)
+	workerPool.Start(ctx)
 	go sched.Run(ctx)
 
-	// gRPC server — interceptor order: RequestID first so logger and recovery always have an ID
+	// gRPC server — interceptor order matters: RequestID → Recovery → Logger
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			middleware.UnaryRequestID(),
@@ -89,7 +108,7 @@ func main() {
 			middleware.UnaryLogger(log),
 		),
 	)
-	kronosv1.RegisterKronosServiceServer(grpcServer, api.New(pgStore, log))
+	kronosv1.RegisterKronosServiceServer(grpcServer, api.New(instrumentedStore, log))
 	reflection.Register(grpcServer)
 
 	lis, err := net.Listen("tcp", grpcAddr)
@@ -105,9 +124,9 @@ func main() {
 	go func() {
 		<-quit
 		log.Info().Msg("shutting down...")
-		cancel()            // stop scheduler
+		cancel()
 		grpcServer.GracefulStop()
-		pool_.Stop()        // drain in-flight jobs
+		workerPool.Stop()
 		log.Info().Msg("shutdown complete")
 	}()
 
@@ -116,9 +135,7 @@ func main() {
 	}
 }
 
-// registerHandlers is where users wire their job types. Add real handlers here.
 func registerHandlers(r *worker.Registry, log zerolog.Logger) {
-	// Example: a no-op "echo" job that logs its payload.
 	r.Register("echo", func(ctx context.Context, payload []byte) error {
 		log.Info().RawJSON("payload", payload).Msg("echo job")
 		return nil

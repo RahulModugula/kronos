@@ -161,6 +161,14 @@ func (s *PGStore) IncrementRetry(ctx context.Context, id uuid.UUID, nextRun time
 	return err
 }
 
+func (s *PGStore) QueueDepth(ctx context.Context) (int64, error) {
+	var n int64
+	err := s.pool.QueryRow(ctx,
+		`SELECT COUNT(*) FROM jobs WHERE status = 'pending'`,
+	).Scan(&n)
+	return n, err
+}
+
 func (s *PGStore) CancelJob(ctx context.Context, id uuid.UUID) error {
 	tag, err := s.pool.Exec(ctx, `
 		UPDATE jobs SET status = 'cancelled', updated_at = NOW()
