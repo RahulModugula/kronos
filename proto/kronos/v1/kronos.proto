@@ -29,6 +29,7 @@ message Job {
   google.protobuf.Timestamp created_at   = 9;
   google.protobuf.Timestamp updated_at   = 10;
   string error       = 11; // last error message if failed
+  int32 priority     = 12; // 1 (lowest) to 10 (highest), default 5
 }
 
 message SubmitJobRequest {
@@ -37,6 +38,7 @@ message SubmitJobRequest {
   bytes  payload    = 3;
   int32  max_retries = 4; // default 3 if 0
   google.protobuf.Timestamp scheduled_at = 5; // nil = run immediately
+  int32 priority    = 6; // 1–10, default 5 if unset
 }
 
 message SubmitJobResponse {

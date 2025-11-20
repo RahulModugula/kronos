@@ -37,12 +37,17 @@ func (srv *Server) SubmitJob(ctx context.Context, req *kronosv1.SubmitJobRequest
 	if maxRetries == 0 {
 		maxRetries = 3
 	}
+	priority := int(req.Priority)
+	if priority == 0 {
+		priority = 5
+	}
 
 	j := &store.Job{
 		Name:       req.Name,
 		Type:       req.Type,
 		Payload:    req.Payload,
 		MaxRetries: maxRetries,
+		Priority:   priority,
 	}
 	if req.ScheduledAt != nil {
 		j.ScheduledAt = req.ScheduledAt.AsTime()
@@ -115,6 +120,7 @@ func toProto(j *store.Job) *kronosv1.Job {
 		MaxRetries:  int32(j.MaxRetries),
 		RetryCount:  int32(j.RetryCount),
 		Error:       j.Error,
+		Priority:    int32(j.Priority),
 		ScheduledAt: timestamppb.New(j.ScheduledAt),
 		CreatedAt:   timestamppb.New(j.CreatedAt),
 		UpdatedAt:   timestamppb.New(j.UpdatedAt),

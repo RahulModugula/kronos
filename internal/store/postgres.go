@@ -22,7 +22,7 @@ func NewPGStore(pool *pgxpool.Pool) *PGStore {
 }
 
 const jobColumns = `id, name, type, payload, status, max_retries, retry_count,
-	COALESCE(error, ''), scheduled_at, created_at, updated_at`
+	COALESCE(error, ''), scheduled_at, created_at, updated_at, priority`
 
 func scanJob(row pgx.Row) (*Job, error) {
 	j := &Job{}
@@ -30,7 +30,7 @@ func scanJob(row pgx.Row) (*Job, error) {
 	err := row.Scan(
 		&j.ID, &j.Name, &j.Type, &j.Payload,
 		&status, &j.MaxRetries, &j.RetryCount, &j.Error,
-		&j.ScheduledAt, &j.CreatedAt, &j.UpdatedAt,
+		&j.ScheduledAt, &j.CreatedAt, &j.UpdatedAt, &j.Priority,
 	)
 	if err != nil {
 		return nil, err
@@ -43,11 +43,14 @@ func (s *PGStore) CreateJob(ctx context.Context, j *Job) (*Job, error) {
 	if j.ScheduledAt.IsZero() {
 		j.ScheduledAt = time.Now().UTC()
 	}
+	if j.Priority == 0 {
+		j.Priority = 5
+	}
 	row := s.pool.QueryRow(ctx, `
-		INSERT INTO jobs (name, type, payload, max_retries, scheduled_at)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO jobs (name, type, payload, max_retries, scheduled_at, priority)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING `+jobColumns,
-		j.Name, j.Type, j.Payload, j.MaxRetries, j.ScheduledAt,
+		j.Name, j.Type, j.Payload, j.MaxRetries, j.ScheduledAt, j.Priority,
 	)
 	return scanJob(row)
 }
@@ -118,7 +121,7 @@ func (s *PGStore) ClaimJobs(ctx context.Context, n int) ([]*Job, error) {
 			SELECT id FROM jobs
 			WHERE status IN ('pending', 'failed')
 			  AND scheduled_at <= NOW()
-			ORDER BY scheduled_at
+			ORDER BY priority DESC, scheduled_at ASC
 			LIMIT $1
 			FOR UPDATE SKIP LOCKED
 		)

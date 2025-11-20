@@ -28,6 +28,7 @@ type Job struct {
 	Status      Status
 	MaxRetries  int
 	RetryCount  int
+	Priority    int // 1 (lowest) to 10 (highest), default 5
 	Error       string
 	ScheduledAt time.Time
 	CreatedAt   time.Time
