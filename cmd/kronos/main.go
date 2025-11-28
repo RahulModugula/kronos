@@ -7,16 +7,18 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
 	kronosv1 "github.com/rahulmodugula/kronos/gen/kronos/v1"
 	"github.com/rahulmodugula/kronos/internal/api"
+	"github.com/rahulmodugula/kronos/internal/config"
+	"github.com/rahulmodugula/kronos/internal/health"
 	"github.com/rahulmodugula/kronos/internal/metrics"
 	"github.com/rahulmodugula/kronos/internal/middleware"
 	"github.com/rahulmodugula/kronos/internal/retry"
@@ -34,13 +36,13 @@ import (
 func main() {
 	log := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
-	dsn := env("DATABASE_URL", "postgres://kronos:kronos@localhost:5432/kronos?sslmode=disable")
-	grpcAddr := env("GRPC_ADDR", ":50051")
-	metricsAddr := env("METRICS_ADDR", ":2112")
-	concurrency := 10
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal().Err(err).Msg("config error")
+	}
 
 	// Run migrations
-	m, err := migrate.New("file://migrations", dsn)
+	m, err := migrate.New("file://migrations", cfg.DatabaseURL)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to init migrations")
 	}
@@ -50,7 +52,7 @@ func main() {
 	log.Info().Msg("migrations applied")
 
 	// Connect to Postgres
-	pool, err := pgxpool.New(context.Background(), dsn)
+	pool, err := pgxpool.New(context.Background(), cfg.DatabaseURL)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to connect to postgres")
 	}
@@ -61,46 +63,50 @@ func main() {
 	}
 	log.Info().Msg("connected to postgres")
 
-	// Prometheus — use a non-global registry so tests stay isolated
+	// Prometheus — non-global registry keeps tests isolated
 	promReg := prometheus.NewRegistry()
 	m_ := metrics.New(promReg)
 	pgStore := store.NewPGStore(pool)
 	instrumentedStore := store.NewMetricsStore(pgStore, m_)
 	metrics.RegisterQueueDepthGauge(promReg, pgStore.QueueDepth)
 
-	// Start /metrics HTTP server on a separate port
+	// /metrics on a separate port so it doesn't share the gRPC listener
 	go func() {
 		mux := http.NewServeMux()
 		mux.Handle("/metrics", promhttp.HandlerFor(promReg, promhttp.HandlerOpts{}))
-		log.Info().Str("addr", metricsAddr).Msg("metrics server listening")
-		if err := http.ListenAndServe(metricsAddr, mux); err != nil {
+		log.Info().Str("addr", cfg.MetricsAddr).Msg("metrics server listening")
+		if err := http.ListenAndServe(cfg.MetricsAddr, mux); err != nil {
 			log.Error().Err(err).Msg("metrics server error")
 		}
 	}()
 
-	// Wire worker + scheduler
+	// Worker pool + scheduler (closure breaks the circular init dependency)
 	registry := worker.NewRegistry()
 	registerHandlers(registry, log)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Two-step init: scheduler needs a pool reference, pool needs scheduler's OnComplete.
-	// We break the cycle by passing a pointer-indirection via closure.
 	var sched *scheduler.Scheduler
-	workerPool := worker.NewPool(concurrency, registry, log, func(ctx context.Context, j *store.Job, execErr error) {
+	workerPool := worker.NewPool(cfg.WorkerConcurrency, registry, log, func(ctx context.Context, j *store.Job, execErr error) {
 		sched.OnComplete(ctx, j, execErr)
 	})
 	sched = scheduler.New(instrumentedStore, workerPool, scheduler.Config{
-		PollInterval: 2 * time.Second,
-		BatchSize:    10,
+		PollInterval: cfg.PollInterval,
+		BatchSize:    cfg.BatchSize,
 		Backoff:      retry.DefaultConfig,
 	}, log)
 
 	workerPool.Start(ctx)
 	go sched.Run(ctx)
 
-	// gRPC server — interceptor order matters: RequestID → Recovery → Logger
+	// Health checker — probes real dependencies, not a stub
+	healthChecker := health.New()
+	healthChecker.Register("postgres", func(ctx context.Context) error {
+		return pool.Ping(ctx)
+	})
+
+	// gRPC server — interceptor order: RequestID → Recovery → Logger
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			middleware.UnaryRequestID(),
@@ -109,15 +115,16 @@ func main() {
 		),
 	)
 	kronosv1.RegisterKronosServiceServer(grpcServer, api.New(instrumentedStore, log))
+	grpc_health_v1.RegisterHealthServer(grpcServer, healthChecker)
 	reflection.Register(grpcServer)
 
-	lis, err := net.Listen("tcp", grpcAddr)
+	lis, err := net.Listen("tcp", cfg.GRPCAddr)
 	if err != nil {
-		log.Fatal().Err(err).Str("addr", grpcAddr).Msg("failed to listen")
+		log.Fatal().Err(err).Str("addr", cfg.GRPCAddr).Msg("failed to listen")
 	}
-	log.Info().Str("addr", grpcAddr).Msg("gRPC server listening")
+	log.Info().Str("addr", cfg.GRPCAddr).Msg("gRPC server listening")
 
-	// Graceful shutdown
+	// Graceful shutdown on SIGTERM / SIGINT
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 
@@ -140,11 +147,4 @@ func registerHandlers(r *worker.Registry, log zerolog.Logger) {
 		log.Info().RawJSON("payload", payload).Msg("echo job")
 		return nil
 	})
-}
-
-func env(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
 }
