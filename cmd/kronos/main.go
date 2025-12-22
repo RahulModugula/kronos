@@ -1,12 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -19,6 +23,7 @@ import (
 	"github.com/rahulmodugula/kronos/internal/api"
 	"github.com/rahulmodugula/kronos/internal/config"
 	"github.com/rahulmodugula/kronos/internal/health"
+	"github.com/rahulmodugula/kronos/internal/leader"
 	"github.com/rahulmodugula/kronos/internal/metrics"
 	"github.com/rahulmodugula/kronos/internal/middleware"
 	"github.com/rahulmodugula/kronos/internal/retry"
@@ -98,7 +103,20 @@ func main() {
 	}, log)
 
 	workerPool.Start(ctx)
-	go sched.Run(ctx)
+
+	// Leader election: only the node holding the advisory lock runs the
+	// scheduler. On lock loss (crash, network partition), the scheduler on
+	// this node stops and a standby node takes over within one poll interval.
+	elector := leader.New(cfg.DatabaseURL, log)
+	go elector.Run(ctx,
+		func(leaderCtx context.Context) {
+			log.Info().Msg("elected as leader, starting scheduler")
+			sched.Run(leaderCtx) // blocks until leaderCtx is cancelled
+		},
+		func() {
+			log.Warn().Msg("lost leadership — scheduler paused, waiting for re-election")
+		},
+	)
 
 	// Health checker — probes real dependencies, not a stub
 	healthChecker := health.New()
@@ -143,8 +161,103 @@ func main() {
 }
 
 func registerHandlers(r *worker.Registry, log zerolog.Logger) {
-	r.Register("echo", func(ctx context.Context, payload []byte) error {
+	// echo — log the payload and return. Useful for smoke-testing the pipeline.
+	r.Register("echo", func(ctx context.Context, payload json.RawMessage) error {
 		log.Info().RawJSON("payload", payload).Msg("echo job")
+		return nil
+	})
+
+	// webhook-delivery — POST a JSON payload to a URL with retries delegated
+	// to Kronos's retry engine. The handler is idempotent: duplicate deliveries
+	// are acceptable because the receiver should deduplicate on event_id.
+	r.Register("webhook-delivery", func(ctx context.Context, payload json.RawMessage) error {
+		var p struct {
+			URL     string          `json:"url"`
+			EventID string          `json:"event_id"`
+			Body    json.RawMessage `json:"body"`
+		}
+		if err := json.Unmarshal(payload, &p); err != nil {
+			return fmt.Errorf("webhook-delivery: invalid payload: %w", err)
+		}
+		if p.URL == "" || p.EventID == "" {
+			return fmt.Errorf("webhook-delivery: url and event_id are required")
+		}
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, p.URL, bytes.NewReader(p.Body))
+		if err != nil {
+			return fmt.Errorf("webhook-delivery: build request: %w", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Event-ID", p.EventID) // receiver can use this to deduplicate
+
+		client := &http.Client{Timeout: 10 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil {
+			return fmt.Errorf("webhook-delivery: http: %w", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode >= 500 {
+			return fmt.Errorf("webhook-delivery: server error %d (will retry)", resp.StatusCode)
+		}
+		log.Info().Str("url", p.URL).Str("event_id", p.EventID).Int("status", resp.StatusCode).Msg("webhook delivered")
+		return nil
+	})
+
+	// send-email — mock SMTP handler. Swap the log line for a real smtp.SendMail
+	// call in production. The Payload schema mirrors what a transactional email
+	// service (Postmark, SES) expects.
+	r.Register("send-email", func(ctx context.Context, payload json.RawMessage) error {
+		var p struct {
+			To      string `json:"to"`
+			Subject string `json:"subject"`
+			Body    string `json:"body"`
+		}
+		if err := json.Unmarshal(payload, &p); err != nil {
+			return fmt.Errorf("send-email: invalid payload: %w", err)
+		}
+		if p.To == "" || p.Subject == "" {
+			return fmt.Errorf("send-email: to and subject are required")
+		}
+
+		// In production: smtp.SendMail(smtpAddr, auth, from, []string{p.To}, msg)
+		log.Info().
+			Str("to", p.To).
+			Str("subject", p.Subject).
+			Msg("send-email: dispatched (mock SMTP)")
+		return nil
+	})
+
+	// resize-image — simulate a CPU-bound image processing job to demonstrate
+	// that the worker pool handles blocking operations without stalling other
+	// job types. In production, shell out to ImageMagick or call an image API.
+	r.Register("resize-image", func(ctx context.Context, payload json.RawMessage) error {
+		var p struct {
+			ImageURL string `json:"image_url"`
+			Width    int    `json:"width"`
+			Height   int    `json:"height"`
+			OutputS3 string `json:"output_s3_key"`
+		}
+		if err := json.Unmarshal(payload, &p); err != nil {
+			return fmt.Errorf("resize-image: invalid payload: %w", err)
+		}
+		if p.ImageURL == "" || p.Width == 0 || p.Height == 0 {
+			return fmt.Errorf("resize-image: image_url, width, and height are required")
+		}
+
+		// Simulate image processing time (in production: download → resize → upload).
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(50 * time.Millisecond):
+		}
+
+		log.Info().
+			Str("image_url", p.ImageURL).
+			Int("width", p.Width).
+			Int("height", p.Height).
+			Str("output", p.OutputS3).
+			Msg("resize-image: complete (mock)")
 		return nil
 	})
 }
