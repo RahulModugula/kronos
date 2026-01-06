@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: kronos
+          POSTGRES_PASSWORD: kronos
+          POSTGRES_DB: kronos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kronos"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Build
+        run: make build
+
+      - name: Unit tests (with race detector)
+        run: make test
+
+      - name: Integration tests
+        env:
+          DATABASE_URL: postgres://kronos:kronos@localhost:5432/kronos?sslmode=disable
+        run: make test-integration
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: true
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.62
+
+  bench:
+    runs-on: ubuntu-latest
+    # Benchmarks run on main only (not PRs) to avoid noisy results on shared runners.
+    if: github.ref == 'refs/heads/main'
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: kronos
+          POSTGRES_PASSWORD: kronos
+          POSTGRES_DB: kronos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kronos"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: true
+      - name: Worker pool micro-benchmark
+        run: go test -bench=BenchmarkPool_Throughput -benchtime=5s ./internal/worker/ | tee bench.txt
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-${{ github.sha }}
+          path: bench.txt
