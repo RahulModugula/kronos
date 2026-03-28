@@ -5,6 +5,7 @@ package kronos.v1;
 option go_package = "github.com/rahulmodugula/kronos/gen/kronos/v1;kronosv1";
 
 import "google/protobuf/timestamp.proto";
+import "kronos/v1/workflow.proto";
 
 // JobStatus represents the lifecycle state of a job.
 enum JobStatus {
@@ -72,8 +73,17 @@ message CancelJobRequest {
 message CancelJobResponse {}
 
 service KronosService {
+  // Job queue API (legacy, still useful for simple background work)
   rpc SubmitJob(SubmitJobRequest) returns (SubmitJobResponse);
   rpc GetJob(GetJobRequest) returns (GetJobResponse);
   rpc ListJobs(ListJobsRequest) returns (ListJobsResponse);
   rpc CancelJob(CancelJobRequest) returns (CancelJobResponse);
+
+  // Workflow API (durable multi-step workflows)
+  rpc StartWorkflow(StartWorkflowRequest) returns (StartWorkflowResponse);
+  rpc GetRun(GetRunRequest) returns (GetRunResponse);
+  rpc ListRuns(ListRunsRequest) returns (ListRunsResponse);
+  rpc CancelRun(CancelRunRequest) returns (CancelRunResponse);
+  rpc GetRunEvents(GetRunEventsRequest) returns (GetRunEventsResponse);
+  rpc StreamRunHistory(StreamRunHistoryRequest) returns (stream WorkflowEvent);
 }
