@@ -33,6 +33,7 @@ import (
 	"github.com/rahulmodugula/kronos/internal/scheduler"
 	"github.com/rahulmodugula/kronos/internal/store"
 	"github.com/rahulmodugula/kronos/internal/worker"
+	"github.com/rahulmodugula/kronos/internal/workflow"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -78,6 +79,11 @@ func main() {
 	instrumentedStore := store.NewMetricsStore(pgStore, m_)
 	metrics.RegisterQueueDepthGauge(promReg, pgStore.QueueDepth)
 
+	// Workflow engine
+	workflowStore := workflow.NewPGWorkflowStore(pool)
+	workflowRegistry := workflow.NewRegistry()
+	workflowEngine := workflow.NewEngine(workflowStore, workflowRegistry, log)
+
 	// /metrics on a separate port so it doesn't share the gRPC listener
 	go func() {
 		mux := http.NewServeMux()
@@ -105,7 +111,7 @@ func main() {
 	// scheduler starts, the closure and the assignment are on different lines
 	// and the race detector reasons purely about memory ordering, not timing.
 	registry := worker.NewRegistry()
-	registerHandlers(registry, log)
+	registerHandlers(registry, log, workflowEngine)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -198,7 +204,19 @@ func main() {
 	}
 }
 
-func registerHandlers(r *worker.Registry, log zerolog.Logger) {
+func registerHandlers(r *worker.Registry, log zerolog.Logger, workflowEngine *workflow.Engine) {
+	// kronos.workflow_step — internal handler for executing workflow steps
+	r.Register("kronos.workflow_step", func(ctx context.Context, payload json.RawMessage) error {
+		var p struct {
+			RunID    string `json:"run_id"`
+			StepName string `json:"step_name"`
+		}
+		if err := json.Unmarshal(payload, &p); err != nil {
+			return fmt.Errorf("kronos.workflow_step: invalid payload: %w", err)
+		}
+		return workflowEngine.ExecuteStep(ctx, p.RunID, p.StepName)
+	})
+
 	// echo — log the payload and return. Useful for smoke-testing the pipeline.
 	r.Register("echo", func(ctx context.Context, payload json.RawMessage) error {
 		log.Info().RawJSON("payload", payload).Msg("echo job")
