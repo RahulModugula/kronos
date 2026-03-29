@@ -1,8 +1,11 @@
-.PHONY: proto build run test migrate migrate-down lint
+.PHONY: proto build run test test-integration bench migrate migrate-down lint
 
 PROTO_DIR := proto/kronos/v1
 GEN_DIR   := gen/kronos/v1
 BINARY    := bin/kronos
+
+# golang-migrate CLI — no separate binary install needed
+MIGRATE := go run -mod=mod github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.1
 
 proto:
 	mkdir -p $(GEN_DIR)
@@ -18,16 +21,22 @@ run: build
 	./$(BINARY)
 
 migrate:
-	go run ./cmd/kronos migrate-up
+	$(MIGRATE) -path migrations -database "$(DATABASE_URL)" up
 
 migrate-down:
-	go run ./cmd/kronos migrate-down
+	$(MIGRATE) -path migrations -database "$(DATABASE_URL)" down 1
 
 test:
 	go test -race -count=1 ./...
 
 test-integration:
 	go test -tags integration -race -count=1 -timeout 120s ./internal/integration/...
+
+bench:
+	DATABASE_URL=$(DATABASE_URL) go run ./cmd/bench $(BENCH_FLAGS)
+
+bench-unit:
+	go test -bench=BenchmarkPool_Throughput -benchtime=5s -count=1 ./internal/worker/
 
 lint:
 	golangci-lint run ./...

@@ -33,19 +33,23 @@ jobs:
           go-version: "1.23"
           cache: true
 
-      - name: Download dependencies
-        run: go mod download
+      # go.sum is generated here and used for the rest of the job.
+      # Developers should run `go mod tidy` locally before pushing.
+      - name: Tidy and verify dependencies
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod || (echo "go.mod is not tidy — run 'go mod tidy'" && exit 1)
 
       - name: Build
-        run: make build
+        run: go build ./...
 
-      - name: Unit tests (with race detector)
-        run: make test
+      - name: Unit tests (race detector)
+        run: go test -race -count=1 ./...
 
       - name: Integration tests
         env:
           DATABASE_URL: postgres://kronos:kronos@localhost:5432/kronos?sslmode=disable
-        run: make test-integration
+        run: go test -tags integration -race -count=1 -timeout 120s ./internal/integration/...
 
   lint:
     runs-on: ubuntu-latest
@@ -55,13 +59,13 @@ jobs:
         with:
           go-version: "1.23"
           cache: true
+      - run: go mod tidy
       - uses: golangci/golangci-lint-action@v6
         with:
           version: v1.62
 
   bench:
     runs-on: ubuntu-latest
-    # Benchmarks run on main only (not PRs) to avoid noisy results on shared runners.
     if: github.ref == 'refs/heads/main'
 
     services:
@@ -85,10 +89,10 @@ jobs:
         with:
           go-version: "1.23"
           cache: true
+      - run: go mod tidy
       - name: Worker pool micro-benchmark
-        run: go test -bench=BenchmarkPool_Throughput -benchtime=5s ./internal/worker/ | tee bench.txt
-      - name: Upload benchmark results
-        uses: actions/upload-artifact@v4
+        run: go test -bench=BenchmarkPool_Throughput -benchtime=5s -count=1 ./internal/worker/ | tee bench.txt
+      - uses: actions/upload-artifact@v4
         with:
           name: bench-${{ github.sha }}
           path: bench.txt

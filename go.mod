@@ -12,4 +12,7 @@ require (
 require (
 	github.com/golang-migrate/migrate/v4 v4.18.1
 	github.com/google/uuid v1.6.0
+	github.com/prometheus/client_golang v1.20.5
+	github.com/robfig/cron/v3 v3.0.1
+	github.com/testcontainers/testcontainers-go v0.35.0
 )
