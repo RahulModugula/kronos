@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -85,22 +86,29 @@ func main() {
 		}
 	}()
 
-	// Worker pool + scheduler (closure breaks the circular init dependency)
+	// Worker pool + scheduler (closure breaks the circular init dependency).
+	// We use atomic.Pointer so the race detector doesn't flag reads of sched
+	// before it's assigned — even though no job can complete before the
+	// scheduler starts, the closure and the assignment are on different lines
+	// and the race detector reasons purely about memory ordering, not timing.
 	registry := worker.NewRegistry()
 	registerHandlers(registry, log)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	var sched *scheduler.Scheduler
+	var schedPtr atomic.Pointer[scheduler.Scheduler]
 	workerPool := worker.NewPool(cfg.WorkerConcurrency, registry, log, func(ctx context.Context, j *store.Job, execErr error) {
-		sched.OnComplete(ctx, j, execErr)
+		if s := schedPtr.Load(); s != nil {
+			s.OnComplete(ctx, j, execErr)
+		}
 	})
-	sched = scheduler.New(instrumentedStore, workerPool, scheduler.Config{
+	sched := scheduler.New(instrumentedStore, workerPool, scheduler.Config{
 		PollInterval: cfg.PollInterval,
 		BatchSize:    cfg.BatchSize,
 		Backoff:      retry.DefaultConfig,
 	}, log)
+	schedPtr.Store(sched)
 
 	workerPool.Start(ctx)
 
@@ -111,7 +119,7 @@ func main() {
 	go elector.Run(ctx,
 		func(leaderCtx context.Context) {
 			log.Info().Msg("elected as leader, starting scheduler")
-			sched.Run(leaderCtx) // blocks until leaderCtx is cancelled
+			schedPtr.Load().Run(leaderCtx) // blocks until leaderCtx is cancelled
 		},
 		func() {
 			log.Warn().Msg("lost leadership — scheduler paused, waiting for re-election")

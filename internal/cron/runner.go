@@ -37,6 +37,11 @@ func NewRunner(js store.Store, cs Store, log zerolog.Logger) *Runner {
 // LoadAndStart reads all enabled cron definitions from the DB, registers them
 // with robfig/cron, then starts the internal ticker goroutine.
 // Must be called once after migrations complete.
+//
+// The provided ctx is used for all jobs spawned by this runner. When ctx is
+// cancelled (e.g. on leadership loss), new job insertions are aborted rather
+// than using context.Background(), which would keep writing to a DB that may
+// no longer be owned by this node.
 func (r *Runner) LoadAndStart(ctx context.Context) error {
 	jobs, err := r.cronStore.ListEnabledCronJobs(ctx)
 	if err != nil {
@@ -46,7 +51,7 @@ func (r *Runner) LoadAndStart(ctx context.Context) error {
 	for _, cj := range jobs {
 		cj := cj // capture loop variable
 		entryID, err := r.cron.AddFunc(cj.Schedule, func() {
-			r.fire(context.Background(), cj)
+			r.fire(ctx, cj) // propagate lifecycle ctx so shutdown is respected
 		})
 		if err != nil {
 			return fmt.Errorf("invalid schedule %q for cron job %q: %w", cj.Schedule, cj.Name, err)
