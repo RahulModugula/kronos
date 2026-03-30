@@ -30,7 +30,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
+          go-version: "1.25.x"
           cache: true
 
       # go.sum is generated here and used for the rest of the job.
@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
+          go-version: "1.25.x"
           cache: true
       - run: go mod tidy
       - uses: golangci/golangci-lint-action@v6
@@ -87,7 +87,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
+          go-version: "1.25.x"
           cache: true
       - run: go mod tidy
       - name: Worker pool micro-benchmark
