@@ -39,7 +39,7 @@ func benchPool(b *testing.B, concurrency int) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	pool := NewPool(concurrency, reg, zerolog.Nop(), func(_ context.Context, _ *store.Job, _ error) {
+	pool := NewPool(concurrency, reg, zerolog.Nop(), 0, func(_ context.Context, _ *store.Job, _ error) {
 		completed.Add(1)
 	})
 	pool.Start(ctx)

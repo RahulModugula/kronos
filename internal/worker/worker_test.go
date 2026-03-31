@@ -32,7 +32,7 @@ func TestPool_ExecutesJobs(t *testing.T) {
 	}
 
 	log := zerolog.Nop()
-	pool := worker.NewPool(4, reg, log, onComplete)
+	pool := worker.NewPool(4, reg, log, 0, onComplete)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -67,7 +67,7 @@ func TestPool_UnknownHandler(t *testing.T) {
 	}
 
 	log := zerolog.Nop()
-	pool := worker.NewPool(1, reg, log, onComplete)
+	pool := worker.NewPool(1, reg, log, 0, onComplete)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -113,7 +113,7 @@ func TestPool_StopDrainsInFlightJobs(t *testing.T) {
 		return nil
 	})
 
-	pool := worker.NewPool(n, reg, zerolog.Nop(), func(_ context.Context, _ *store.Job, _ error) {
+	pool := worker.NewPool(n, reg, zerolog.Nop(), 0, func(_ context.Context, _ *store.Job, _ error) {
 		completed.Add(1)
 	})
 
@@ -145,7 +145,7 @@ func TestPool_ContextCancellationPropagatedToHandler(t *testing.T) {
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())
-	pool := worker.NewPool(1, reg, zerolog.Nop(), func(_ context.Context, _ *store.Job, _ error) {})
+	pool := worker.NewPool(1, reg, zerolog.Nop(), 0, func(_ context.Context, _ *store.Job, _ error) {})
 	pool.Start(ctx)
 
 	cancel() // cancel before submitting so handler receives a cancelled ctx

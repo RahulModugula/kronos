@@ -58,7 +58,7 @@ func TestNew_ReturnsValidScheduler(t *testing.T) {
 	ms := newMockStore()
 	reg := worker.NewRegistry()
 	log := zerolog.Nop()
-	pool := worker.NewPool(1, reg, log, func(context.Context, *store.Job, error) {})
+	pool := worker.NewPool(1, reg, log, 0, func(context.Context, *store.Job, error) {})
 
 	s := scheduler.New(ms, pool, scheduler.Config{}, log)
 	if s == nil {
@@ -70,7 +70,7 @@ func TestRun_RespectsContextCancellation(t *testing.T) {
 	ms := newMockStore()
 	reg := worker.NewRegistry()
 	log := zerolog.Nop()
-	pool := worker.NewPool(1, reg, log, func(context.Context, *store.Job, error) {})
+	pool := worker.NewPool(1, reg, log, 0, func(context.Context, *store.Job, error) {})
 
 	s := scheduler.New(ms, pool, scheduler.Config{
 		PollInterval: 50 * time.Millisecond,
@@ -98,7 +98,7 @@ func TestOnComplete_MarksJobCompleted(t *testing.T) {
 	ms := newMockStore()
 	reg := worker.NewRegistry()
 	log := zerolog.Nop()
-	pool := worker.NewPool(1, reg, log, func(context.Context, *store.Job, error) {})
+	pool := worker.NewPool(1, reg, log, 0, func(context.Context, *store.Job, error) {})
 
 	s := scheduler.New(ms, pool, scheduler.Config{}, log)
 
@@ -122,7 +122,7 @@ func TestOnComplete_TriggersRetryOnError(t *testing.T) {
 	ms := newMockStore()
 	reg := worker.NewRegistry()
 	log := zerolog.Nop()
-	pool := worker.NewPool(1, reg, log, func(context.Context, *store.Job, error) {})
+	pool := worker.NewPool(1, reg, log, 0, func(context.Context, *store.Job, error) {})
 
 	s := scheduler.New(ms, pool, scheduler.Config{
 		Backoff: retry.Config{
@@ -154,7 +154,7 @@ func TestOnComplete_MarksDeadWhenRetriesExhausted(t *testing.T) {
 	ms := newMockStore()
 	reg := worker.NewRegistry()
 	log := zerolog.Nop()
-	pool := worker.NewPool(1, reg, log, func(context.Context, *store.Job, error) {})
+	pool := worker.NewPool(1, reg, log, 0, func(context.Context, *store.Job, error) {})
 
 	s := scheduler.New(ms, pool, scheduler.Config{}, log)
 
