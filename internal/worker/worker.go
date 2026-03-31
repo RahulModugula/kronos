@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/rs/zerolog"
 
@@ -54,6 +55,7 @@ type Pool struct {
 	registry    *Registry
 	log         zerolog.Logger
 	wg          sync.WaitGroup
+	jobTimeout  time.Duration
 
 	// onComplete is called after a job finishes (success or error).
 	// It is responsible for updating the DB and scheduling retries.
@@ -61,12 +63,13 @@ type Pool struct {
 }
 
 // NewPool creates a worker pool. Call Start to launch goroutines.
-func NewPool(concurrency int, registry *Registry, log zerolog.Logger, onComplete func(context.Context, *store.Job, error)) *Pool {
+func NewPool(concurrency int, registry *Registry, log zerolog.Logger, jobTimeout time.Duration, onComplete func(context.Context, *store.Job, error)) *Pool {
 	return &Pool{
 		concurrency: concurrency,
 		jobs:        make(chan *store.Job, concurrency*2),
 		registry:    registry,
 		log:         log,
+		jobTimeout:  jobTimeout,
 		onComplete:  onComplete,
 	}
 }
@@ -109,7 +112,14 @@ func (p *Pool) execute(ctx context.Context, job *store.Job, log zerolog.Logger) 
 		return
 	}
 
-	execErr := handler(ctx, json.RawMessage(job.Payload))
+	timeout := p.jobTimeout
+	if timeout <= 0 {
+		timeout = 30 * time.Minute
+	}
+	jobCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	execErr := handler(jobCtx, json.RawMessage(job.Payload))
 	if execErr != nil {
 		log.Error().Err(execErr).Msg("job failed")
 	} else {

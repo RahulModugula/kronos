@@ -100,7 +100,7 @@ func main() {
 	defer cancel()
 
 	var sched *scheduler.Scheduler
-	wp := worker.NewPool(*numWorkers, registry, zerolog.Nop(), func(_ context.Context, j *store.Job, execErr error) {
+	wp := worker.NewPool(*numWorkers, registry, zerolog.Nop(), cfg.JobTimeout, func(_ context.Context, j *store.Job, execErr error) {
 		sched.OnComplete(ctx, j, execErr)
 
 		latMs := float64(time.Since(j.CreatedAt).Milliseconds())
