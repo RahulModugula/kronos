@@ -21,8 +21,10 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	kronosv1 "github.com/rahulmodugula/kronos/gen/kronos/v1"
+	"github.com/rahulmodugula/kronos/internal/admin"
 	"github.com/rahulmodugula/kronos/internal/api"
 	"github.com/rahulmodugula/kronos/internal/config"
+	"github.com/rahulmodugula/kronos/internal/cron"
 	"github.com/rahulmodugula/kronos/internal/health"
 	"github.com/rahulmodugula/kronos/internal/leader"
 	"github.com/rahulmodugula/kronos/internal/metrics"
@@ -86,6 +88,17 @@ func main() {
 		}
 	}()
 
+	// Admin HTTP server — dead-letter queue management endpoints
+	go func() {
+		adminMux := http.NewServeMux()
+		adminHandler := admin.NewHandler(instrumentedStore, log)
+		adminHandler.Register(adminMux)
+		log.Info().Str("addr", cfg.AdminAddr).Msg("admin server listening")
+		if err := http.ListenAndServe(cfg.AdminAddr, adminMux); err != nil {
+			log.Error().Err(err).Msg("admin server error")
+		}
+	}()
+
 	// Worker pool + scheduler (closure breaks the circular init dependency).
 	// We use atomic.Pointer so the race detector doesn't flag reads of sched
 	// before it's assigned — even though no job can complete before the
@@ -97,8 +110,11 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	// Start cache-cleanup goroutine now that ctx is available
+	instrumentedStore.Start(ctx)
+
 	var schedPtr atomic.Pointer[scheduler.Scheduler]
-	workerPool := worker.NewPool(cfg.WorkerConcurrency, registry, log, func(ctx context.Context, j *store.Job, execErr error) {
+	workerPool := worker.NewPool(cfg.WorkerConcurrency, registry, log, cfg.JobTimeout, func(ctx context.Context, j *store.Job, execErr error) {
 		if s := schedPtr.Load(); s != nil {
 			s.OnComplete(ctx, j, execErr)
 		}
@@ -106,7 +122,12 @@ func main() {
 	sched := scheduler.New(instrumentedStore, workerPool, scheduler.Config{
 		PollInterval: cfg.PollInterval,
 		BatchSize:    cfg.BatchSize,
-		Backoff:      retry.DefaultConfig,
+		Backoff: retry.Config{
+			Base:       cfg.RetryBaseDelay,
+			Max:        cfg.RetryMaxDelay,
+			Multiplier: cfg.RetryMultiplier,
+			Jitter:     cfg.RetryJitter,
+		},
 	}, log)
 	schedPtr.Store(sched)
 
@@ -115,10 +136,19 @@ func main() {
 	// Leader election: only the node holding the advisory lock runs the
 	// scheduler. On lock loss (crash, network partition), the scheduler on
 	// this node stops and a standby node takes over within one poll interval.
+	cronStore := cron.NewPGCronStore(pool)
 	elector := leader.New(cfg.DatabaseURL, log)
 	go elector.Run(ctx,
 		func(leaderCtx context.Context) {
 			log.Info().Msg("elected as leader, starting scheduler")
+
+			cronRunner := cron.NewRunner(instrumentedStore, cronStore, log)
+			if err := cronRunner.LoadAndStart(leaderCtx); err != nil {
+				log.Error().Err(err).Msg("cron runner failed to start")
+			} else {
+				defer cronRunner.Stop()
+			}
+
 			schedPtr.Load().Run(leaderCtx) // blocks until leaderCtx is cancelled
 		},
 		func() {
