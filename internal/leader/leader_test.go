@@ -152,7 +152,7 @@ func TestElector_HeartbeatFailureLosesLeadership(t *testing.T) {
 	case <-electedCh:
 		// elected — heartbeat will fail on first tick (heartbeatInterval = 5s)
 		// We can't wait 5s in a unit test, so just verify election happened.
-	case <-time.After(500*time.Millisecond):
+	case <-time.After(500 * time.Millisecond):
 		t.Fatal("onElected was not called within 500ms")
 	}
 }
@@ -184,7 +184,7 @@ func TestElector_ConnectFailureRetriesAndExitsOnCancel(t *testing.T) {
 		if connectAttempts.Load() == 0 {
 			t.Error("no connection attempts were made")
 		}
-	case <-time.After(500*time.Millisecond):
+	case <-time.After(500 * time.Millisecond):
 		t.Fatal("Run did not exit after context cancellation")
 	}
 }

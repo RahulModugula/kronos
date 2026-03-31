@@ -9,13 +9,13 @@ import (
 
 // CronJob is the in-memory representation of a cron_jobs row.
 type CronJob struct {
-	ID           uuid.UUID
-	Name         string
-	Type         string
-	Payload      []byte
-	Schedule     string
-	MaxRetries   int
-	LastFiredAt  *time.Time
+	ID          uuid.UUID
+	Name        string
+	Type        string
+	Payload     []byte
+	Schedule    string
+	MaxRetries  int
+	LastFiredAt *time.Time
 }
 
 // Store is the persistence interface for cron job definitions.
