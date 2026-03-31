@@ -2,6 +2,8 @@ package metrics
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -53,6 +55,11 @@ func RegisterQueueDepthGauge(reg prometheus.Registerer, depthFn func(ctx context
 			defer cancel()
 			n, err := depthFn(ctx)
 			if err != nil {
+				// Return -1 so dashboards can alert on probe failure.
+				// The error is logged here rather than silently ignored.
+				// Note: we can't use the injected logger because GaugeFunc
+				// is a plain func() float64 with no logger param; use stderr.
+				_, _ = fmt.Fprintf(os.Stderr, "kronos: queue_depth probe failed: %v\n", err)
 				return -1
 			}
 			return float64(n)
