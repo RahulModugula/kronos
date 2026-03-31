@@ -10,6 +10,9 @@ import (
 	"github.com/rahulmodugula/kronos/internal/metrics"
 )
 
+const claimCacheMaxAge = time.Hour
+const claimCacheCleanupInterval = 15 * time.Minute
+
 // claimRecord holds the data needed for completion metrics, cached at claim time.
 type claimRecord struct {
 	jobType   string
@@ -36,6 +39,32 @@ type MetricsStore struct {
 
 func NewMetricsStore(inner Store, m *metrics.Metrics) *MetricsStore {
 	return &MetricsStore{inner: inner, m: m}
+}
+
+// Start launches the background cache-cleanup goroutine.
+// It removes claimCache entries older than 1 hour, preventing memory leaks
+// when a node restarts mid-job and terminal UpdateStatus calls never arrive.
+// The goroutine runs every 15 minutes and stops when ctx is cancelled.
+func (s *MetricsStore) Start(ctx context.Context) {
+	go func() {
+		ticker := time.NewTicker(claimCacheCleanupInterval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				cutoff := time.Now().Add(-claimCacheMaxAge)
+				s.claimCache.Range(func(k, v any) bool {
+					cr := v.(claimRecord)
+					if cr.claimedAt.Before(cutoff) {
+						s.claimCache.Delete(k)
+					}
+					return true
+				})
+			}
+		}
+	}()
 }
 
 func (s *MetricsStore) CreateJob(ctx context.Context, j *Job) (*Job, error) {
@@ -109,4 +138,12 @@ func (s *MetricsStore) CancelJob(ctx context.Context, id uuid.UUID) error {
 
 func (s *MetricsStore) QueueDepth(ctx context.Context) (int64, error) {
 	return s.inner.QueueDepth(ctx)
+}
+
+func (s *MetricsStore) RetryDeadJob(ctx context.Context, id uuid.UUID) error {
+	return s.inner.RetryDeadJob(ctx, id)
+}
+
+func (s *MetricsStore) ListDeadJobs(ctx context.Context, pageSize int, pageToken string) ([]*Job, string, error) {
+	return s.inner.ListDeadJobs(ctx, pageSize, pageToken)
 }

@@ -73,4 +73,10 @@ type Store interface {
 
 	// QueueDepth returns the count of pending jobs. Used for Prometheus metrics.
 	QueueDepth(ctx context.Context) (int64, error)
+
+	// RetryDeadJob transitions a dead job back to pending and resets its retry count.
+	RetryDeadJob(ctx context.Context, id uuid.UUID) error
+
+	// ListDeadJobs returns a paginated list of dead jobs.
+	ListDeadJobs(ctx context.Context, pageSize int, pageToken string) ([]*Job, string, error)
 }

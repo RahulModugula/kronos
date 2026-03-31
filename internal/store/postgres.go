@@ -242,3 +242,69 @@ func (s *PGStore) CancelJob(ctx context.Context, id uuid.UUID) error {
 	}
 	return nil
 }
+
+func (s *PGStore) RetryDeadJob(ctx context.Context, id uuid.UUID) error {
+	tag, err := s.pool.Exec(ctx, `
+		UPDATE jobs
+		SET status      = 'pending',
+		    retry_count = 0,
+		    scheduled_at = NOW(),
+		    error       = NULL,
+		    updated_at  = NOW()
+		WHERE id = $1 AND status = 'dead'`, id,
+	)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("job %s is not dead and cannot be retried", id)
+	}
+	return nil
+}
+
+func (s *PGStore) ListDeadJobs(ctx context.Context, pageSize int, pageToken string) ([]*Job, string, error) {
+	if pageSize <= 0 || pageSize > 200 {
+		pageSize = 50
+	}
+
+	args := []any{}
+	where := "status = 'dead'"
+	argN := 1
+
+	if pageToken != "" {
+		cursorTime, cursorID, err := decodeCursor(pageToken)
+		if err != nil {
+			return nil, "", fmt.Errorf("bad page_token: %w", err)
+		}
+		where += fmt.Sprintf(" AND (created_at, id) < ($%d, $%d)", argN, argN+1)
+		args = append(args, cursorTime, cursorID)
+		argN += 2
+	}
+
+	args = append(args, pageSize+1)
+	query := fmt.Sprintf(`SELECT %s FROM jobs WHERE %s ORDER BY created_at DESC, id DESC LIMIT $%d`,
+		jobColumns, where, argN)
+
+	rows, err := s.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, "", err
+	}
+	defer rows.Close()
+
+	var jobs []*Job
+	for rows.Next() {
+		j, err := scanJob(rows)
+		if err != nil {
+			return nil, "", err
+		}
+		jobs = append(jobs, j)
+	}
+
+	var nextToken string
+	if len(jobs) > pageSize {
+		jobs = jobs[:pageSize]
+		last := jobs[len(jobs)-1]
+		nextToken = encodeCursor(last.CreatedAt, last.ID)
+	}
+	return jobs, nextToken, rows.Err()
+}
