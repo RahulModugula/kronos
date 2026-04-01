@@ -95,5 +95,72 @@ func TestRegistry_PanicsOnDuplicate(t *testing.T) {
 	reg.Register("dup", fn) // should panic
 }
 
+// TestPool_StopDrainsInFlightJobs verifies that Stop() waits for all
+// in-flight jobs to complete before returning, even when handlers are slow.
+// This is critical for graceful shutdown — we must not return from Stop()
+// while a handler is mid-execution and writing to the DB.
+func TestPool_StopDrainsInFlightJobs(t *testing.T) {
+	const n = 10
+	const handlerDelay = 20 * time.Millisecond
+
+	var completed atomic.Int64
+	start := make(chan struct{})
+
+	reg := worker.NewRegistry()
+	reg.Register("slow", func(ctx context.Context, _ json.RawMessage) error {
+		<-start // wait for all jobs to be submitted before processing
+		time.Sleep(handlerDelay)
+		return nil
+	})
+
+	pool := worker.NewPool(n, reg, zerolog.Nop(), func(_ context.Context, _ *store.Job, _ error) {
+		completed.Add(1)
+	})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	pool.Start(ctx)
+
+	for i := 0; i < n; i++ {
+		pool.Submit(&store.Job{ID: uuid.New(), Type: "slow"})
+	}
+	close(start) // release all handlers simultaneously
+	pool.Stop()  // must block until all n completions
+
+	if got := completed.Load(); got != n {
+		t.Errorf("Stop() returned before all jobs completed: got %d/%d", got, n)
+	}
+}
+
+// TestPool_ContextCancellationPropagatedToHandler verifies that when the pool
+// context is cancelled, handlers receive a cancelled context on the next
+// execute cycle. Handlers that respect ctx.Done() can exit early on shutdown.
+func TestPool_ContextCancellationPropagatedToHandler(t *testing.T) {
+	ctxSeen := make(chan context.Context, 1)
+
+	reg := worker.NewRegistry()
+	reg.Register("ctx-check", func(ctx context.Context, _ json.RawMessage) error {
+		ctxSeen <- ctx
+		return nil
+	})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	pool := worker.NewPool(1, reg, zerolog.Nop(), func(_ context.Context, _ *store.Job, _ error) {})
+	pool.Start(ctx)
+
+	cancel() // cancel before submitting so handler receives a cancelled ctx
+	pool.Submit(&store.Job{ID: uuid.New(), Type: "ctx-check"})
+	pool.Stop()
+
+	select {
+	case handlerCtx := <-ctxSeen:
+		if handlerCtx.Err() == nil {
+			t.Error("handler received a non-cancelled context after pool ctx was cancelled")
+		}
+	case <-time.After(2 * time.Second):
+		t.Error("handler was never called")
+	}
+}
+
 // ensure time import used
 var _ = time.Second
