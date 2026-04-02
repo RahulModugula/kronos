@@ -2,8 +2,10 @@ package store
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,7 +24,8 @@ func NewPGStore(pool *pgxpool.Pool) *PGStore {
 }
 
 const jobColumns = `id, name, type, payload, status, max_retries, retry_count,
-	COALESCE(error, ''), scheduled_at, created_at, updated_at, priority`
+	COALESCE(error, ''), scheduled_at, created_at, updated_at, priority,
+	COALESCE(idempotency_key, '')`
 
 func scanJob(row pgx.Row) (*Job, error) {
 	j := &Job{}
@@ -31,12 +34,30 @@ func scanJob(row pgx.Row) (*Job, error) {
 		&j.ID, &j.Name, &j.Type, &j.Payload,
 		&status, &j.MaxRetries, &j.RetryCount, &j.Error,
 		&j.ScheduledAt, &j.CreatedAt, &j.UpdatedAt, &j.Priority,
+		&j.IdempotencyKey,
 	)
 	if err != nil {
 		return nil, err
 	}
 	j.Status = Status(status)
 	return j, nil
+}
+
+// GetJobByIdempotencyKey returns an existing non-terminal job with the given
+// idempotency key, or nil if none exists.
+func (s *PGStore) GetJobByIdempotencyKey(ctx context.Context, key string) (*Job, error) {
+	row := s.pool.QueryRow(ctx,
+		`SELECT `+jobColumns+` FROM jobs
+		 WHERE idempotency_key = $1
+		   AND status NOT IN ('cancelled', 'dead')
+		 LIMIT 1`,
+		key,
+	)
+	job, err := scanJob(row)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	return job, err
 }
 
 func (s *PGStore) CreateJob(ctx context.Context, j *Job) (*Job, error) {
@@ -46,11 +67,15 @@ func (s *PGStore) CreateJob(ctx context.Context, j *Job) (*Job, error) {
 	if j.Priority == 0 {
 		j.Priority = 5
 	}
+	var idempotencyKey *string
+	if j.IdempotencyKey != "" {
+		idempotencyKey = &j.IdempotencyKey
+	}
 	row := s.pool.QueryRow(ctx, `
-		INSERT INTO jobs (name, type, payload, max_retries, scheduled_at, priority)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO jobs (name, type, payload, max_retries, scheduled_at, priority, idempotency_key)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING `+jobColumns,
-		j.Name, j.Type, j.Payload, j.MaxRetries, j.ScheduledAt, j.Priority,
+		j.Name, j.Type, j.Payload, j.MaxRetries, j.ScheduledAt, j.Priority, idempotencyKey,
 	)
 	return scanJob(row)
 }
@@ -64,6 +89,33 @@ func (s *PGStore) GetJob(ctx context.Context, id uuid.UUID) (*Job, error) {
 		return nil, fmt.Errorf("job %s not found", id)
 	}
 	return job, err
+}
+
+// encodeCursor encodes a (created_at, id) pair as a base64 page token.
+func encodeCursor(t time.Time, id uuid.UUID) string {
+	raw := t.UTC().Format(time.RFC3339Nano) + "|" + id.String()
+	return base64.StdEncoding.EncodeToString([]byte(raw))
+}
+
+// decodeCursor unpacks a page token produced by encodeCursor.
+func decodeCursor(token string) (time.Time, uuid.UUID, error) {
+	b, err := base64.StdEncoding.DecodeString(token)
+	if err != nil {
+		return time.Time{}, uuid.Nil, fmt.Errorf("invalid page token: %w", err)
+	}
+	parts := strings.SplitN(string(b), "|", 2)
+	if len(parts) != 2 {
+		return time.Time{}, uuid.Nil, fmt.Errorf("invalid page token format")
+	}
+	t, err := time.Parse(time.RFC3339Nano, parts[0])
+	if err != nil {
+		return time.Time{}, uuid.Nil, fmt.Errorf("invalid page token timestamp: %w", err)
+	}
+	id, err := uuid.Parse(parts[1])
+	if err != nil {
+		return time.Time{}, uuid.Nil, fmt.Errorf("invalid page token id: %w", err)
+	}
+	return t, id, nil
 }
 
 func (s *PGStore) ListJobs(ctx context.Context, f ListFilter) ([]*Job, string, error) {
@@ -82,13 +134,17 @@ func (s *PGStore) ListJobs(ctx context.Context, f ListFilter) ([]*Job, string, e
 		argN++
 	}
 	if f.PageToken != "" {
-		where += fmt.Sprintf(" AND created_at < $%d", argN)
-		args = append(args, f.PageToken)
-		argN++
+		cursorTime, cursorID, err := decodeCursor(f.PageToken)
+		if err != nil {
+			return nil, "", fmt.Errorf("bad page_token: %w", err)
+		}
+		where += fmt.Sprintf(" AND (created_at, id) < ($%d, $%d)", argN, argN+1)
+		args = append(args, cursorTime, cursorID)
+		argN += 2
 	}
 
 	args = append(args, pageSize+1)
-	query := fmt.Sprintf(`SELECT %s FROM jobs WHERE %s ORDER BY created_at DESC LIMIT $%d`,
+	query := fmt.Sprintf(`SELECT %s FROM jobs WHERE %s ORDER BY created_at DESC, id DESC LIMIT $%d`,
 		jobColumns, where, argN)
 
 	rows, err := s.pool.Query(ctx, query, args...)
@@ -109,7 +165,8 @@ func (s *PGStore) ListJobs(ctx context.Context, f ListFilter) ([]*Job, string, e
 	var nextToken string
 	if len(jobs) > pageSize {
 		jobs = jobs[:pageSize]
-		nextToken = jobs[len(jobs)-1].CreatedAt.Format(time.RFC3339Nano)
+		last := jobs[len(jobs)-1]
+		nextToken = encodeCursor(last.CreatedAt, last.ID)
 	}
 	return jobs, nextToken, rows.Err()
 }

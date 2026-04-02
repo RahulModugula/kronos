@@ -50,6 +50,10 @@ func (s *MetricsStore) GetJob(ctx context.Context, id uuid.UUID) (*Job, error) {
 	return s.inner.GetJob(ctx, id)
 }
 
+func (s *MetricsStore) GetJobByIdempotencyKey(ctx context.Context, key string) (*Job, error) {
+	return s.inner.GetJobByIdempotencyKey(ctx, key)
+}
+
 func (s *MetricsStore) ListJobs(ctx context.Context, f ListFilter) ([]*Job, string, error) {
 	return s.inner.ListJobs(ctx, f)
 }

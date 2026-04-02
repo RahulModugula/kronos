@@ -39,6 +39,7 @@ message SubmitJobRequest {
   int32  max_retries = 4; // default 3 if 0
   google.protobuf.Timestamp scheduled_at = 5; // nil = run immediately
   int32 priority    = 6; // 1–10, default 5 if unset
+  string idempotency_key = 7; // optional; returns existing job if key matches active job
 }
 
 message SubmitJobResponse {

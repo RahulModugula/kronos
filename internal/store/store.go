@@ -21,18 +21,19 @@ const (
 
 // Job is the in-memory representation of a job row.
 type Job struct {
-	ID          uuid.UUID
-	Name        string
-	Type        string
-	Payload     []byte
-	Status      Status
-	MaxRetries  int
-	RetryCount  int
-	Priority    int // 1 (lowest) to 10 (highest), default 5
-	Error       string
-	ScheduledAt time.Time
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID             uuid.UUID
+	Name           string
+	Type           string
+	Payload        []byte
+	Status         Status
+	MaxRetries     int
+	RetryCount     int
+	Priority       int // 1 (lowest) to 10 (highest), default 5
+	Error          string
+	IdempotencyKey string // optional; deduplicates non-terminal jobs
+	ScheduledAt    time.Time
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 // ListFilter controls ListJobs queries.
@@ -49,6 +50,10 @@ type Store interface {
 
 	// GetJob retrieves a job by ID.
 	GetJob(ctx context.Context, id uuid.UUID) (*Job, error)
+
+	// GetJobByIdempotencyKey returns an active (non-terminal) job matching the
+	// given idempotency key, or nil if none exists.
+	GetJobByIdempotencyKey(ctx context.Context, key string) (*Job, error)
 
 	// ListJobs returns jobs matching the filter.
 	ListJobs(ctx context.Context, f ListFilter) ([]*Job, string, error)

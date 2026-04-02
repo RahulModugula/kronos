@@ -42,12 +42,26 @@ func (srv *Server) SubmitJob(ctx context.Context, req *kronosv1.SubmitJobRequest
 		priority = 5
 	}
 
+	// Deduplication: if an idempotency key is provided, return the existing
+	// active job rather than inserting a duplicate.
+	if req.IdempotencyKey != "" {
+		existing, err := srv.store.GetJobByIdempotencyKey(ctx, req.IdempotencyKey)
+		if err != nil {
+			srv.log.Error().Err(err).Msg("GetJobByIdempotencyKey failed")
+			return nil, status.Error(codes.Internal, "idempotency check failed")
+		}
+		if existing != nil {
+			return &kronosv1.SubmitJobResponse{JobId: existing.ID.String()}, nil
+		}
+	}
+
 	j := &store.Job{
-		Name:       req.Name,
-		Type:       req.Type,
-		Payload:    req.Payload,
-		MaxRetries: maxRetries,
-		Priority:   priority,
+		Name:           req.Name,
+		Type:           req.Type,
+		Payload:        req.Payload,
+		MaxRetries:     maxRetries,
+		Priority:       priority,
+		IdempotencyKey: req.IdempotencyKey,
 	}
 	if req.ScheduledAt != nil {
 		j.ScheduledAt = req.ScheduledAt.AsTime()
