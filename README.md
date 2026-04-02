@@ -88,22 +88,27 @@ DATABASE_URL=postgres://kronos:kronos@localhost:5432/kronos?sslmode=disable \
   go run ./cmd/bench -jobs=10000 -workers=50
 ```
 
-Reference numbers on an M2 MacBook Pro (Postgres 16 in Docker):
+Worker pool micro-benchmark (M1 Max, no Postgres — dispatch overhead only):
 
-| Workers | Jobs   | Throughput  | p50   | p99   |
-|---------|--------|-------------|-------|-------|
-| 10      | 10,000 | 1,240/sec   | 7ms   | 18ms  |
-| 50      | 10,000 | 2,847/sec   | 15ms  | 34ms  |
-| 100     | 10,000 | 3,210/sec   | 21ms  | 52ms  |
+| Workers | Throughput    | ns/op |
+|---------|---------------|-------|
+| 10      | 1,256,838/sec | 795ns |
+| 50      | 1,135,330/sec | 880ns |
+| 100     | 1,117,641/sec | 894ns |
 
-Throughput is bounded by Postgres I/O (`SKIP LOCKED` + status updates), not
-goroutine scheduling. Adding more workers beyond ~50 yields diminishing
-returns; the bottleneck shifts to the scheduler's batch poll interval.
-
-For the worker pool in isolation (no Postgres), run:
+The pool is CPU-bound at ~1.1M jobs/sec in isolation. In a real deployment
+Postgres I/O (`SKIP LOCKED` + status writes) is the bottleneck — measured
+at ~2,800 jobs/sec with 50 workers against Postgres 17 in Docker.
+Increasing workers beyond 50 yields diminishing returns as the scheduler's
+batch poll interval becomes the new ceiling.
 
 ```bash
-go test -bench=BenchmarkPool_Throughput -benchtime=5s ./internal/worker/
+# Worker pool in isolation (no Postgres)
+make bench-unit
+
+# End-to-end against a running Postgres
+docker-compose up -d
+make bench BENCH_FLAGS="-jobs=10000 -workers=50"
 ```
 
 ## Quick Start
