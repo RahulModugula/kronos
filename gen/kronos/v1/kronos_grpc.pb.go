@@ -19,20 +19,34 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	KronosService_SubmitJob_FullMethodName = "/kronos.v1.KronosService/SubmitJob"
-	KronosService_GetJob_FullMethodName    = "/kronos.v1.KronosService/GetJob"
-	KronosService_ListJobs_FullMethodName  = "/kronos.v1.KronosService/ListJobs"
-	KronosService_CancelJob_FullMethodName = "/kronos.v1.KronosService/CancelJob"
+	KronosService_SubmitJob_FullMethodName        = "/kronos.v1.KronosService/SubmitJob"
+	KronosService_GetJob_FullMethodName           = "/kronos.v1.KronosService/GetJob"
+	KronosService_ListJobs_FullMethodName         = "/kronos.v1.KronosService/ListJobs"
+	KronosService_CancelJob_FullMethodName        = "/kronos.v1.KronosService/CancelJob"
+	KronosService_StartWorkflow_FullMethodName    = "/kronos.v1.KronosService/StartWorkflow"
+	KronosService_GetRun_FullMethodName           = "/kronos.v1.KronosService/GetRun"
+	KronosService_ListRuns_FullMethodName         = "/kronos.v1.KronosService/ListRuns"
+	KronosService_CancelRun_FullMethodName        = "/kronos.v1.KronosService/CancelRun"
+	KronosService_GetRunEvents_FullMethodName     = "/kronos.v1.KronosService/GetRunEvents"
+	KronosService_StreamRunHistory_FullMethodName = "/kronos.v1.KronosService/StreamRunHistory"
 )
 
 // KronosServiceClient is the client API for KronosService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KronosServiceClient interface {
+	// Job queue API (legacy, still useful for simple background work)
 	SubmitJob(ctx context.Context, in *SubmitJobRequest, opts ...grpc.CallOption) (*SubmitJobResponse, error)
 	GetJob(ctx context.Context, in *GetJobRequest, opts ...grpc.CallOption) (*GetJobResponse, error)
 	ListJobs(ctx context.Context, in *ListJobsRequest, opts ...grpc.CallOption) (*ListJobsResponse, error)
 	CancelJob(ctx context.Context, in *CancelJobRequest, opts ...grpc.CallOption) (*CancelJobResponse, error)
+	// Workflow API (durable multi-step workflows)
+	StartWorkflow(ctx context.Context, in *StartWorkflowRequest, opts ...grpc.CallOption) (*StartWorkflowResponse, error)
+	GetRun(ctx context.Context, in *GetRunRequest, opts ...grpc.CallOption) (*GetRunResponse, error)
+	ListRuns(ctx context.Context, in *ListRunsRequest, opts ...grpc.CallOption) (*ListRunsResponse, error)
+	CancelRun(ctx context.Context, in *CancelRunRequest, opts ...grpc.CallOption) (*CancelRunResponse, error)
+	GetRunEvents(ctx context.Context, in *GetRunEventsRequest, opts ...grpc.CallOption) (*GetRunEventsResponse, error)
+	StreamRunHistory(ctx context.Context, in *StreamRunHistoryRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WorkflowEvent], error)
 }
 
 type kronosServiceClient struct {
@@ -83,14 +97,91 @@ func (c *kronosServiceClient) CancelJob(ctx context.Context, in *CancelJobReques
 	return out, nil
 }
 
+func (c *kronosServiceClient) StartWorkflow(ctx context.Context, in *StartWorkflowRequest, opts ...grpc.CallOption) (*StartWorkflowResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StartWorkflowResponse)
+	err := c.cc.Invoke(ctx, KronosService_StartWorkflow_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kronosServiceClient) GetRun(ctx context.Context, in *GetRunRequest, opts ...grpc.CallOption) (*GetRunResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRunResponse)
+	err := c.cc.Invoke(ctx, KronosService_GetRun_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kronosServiceClient) ListRuns(ctx context.Context, in *ListRunsRequest, opts ...grpc.CallOption) (*ListRunsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListRunsResponse)
+	err := c.cc.Invoke(ctx, KronosService_ListRuns_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kronosServiceClient) CancelRun(ctx context.Context, in *CancelRunRequest, opts ...grpc.CallOption) (*CancelRunResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelRunResponse)
+	err := c.cc.Invoke(ctx, KronosService_CancelRun_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kronosServiceClient) GetRunEvents(ctx context.Context, in *GetRunEventsRequest, opts ...grpc.CallOption) (*GetRunEventsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRunEventsResponse)
+	err := c.cc.Invoke(ctx, KronosService_GetRunEvents_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kronosServiceClient) StreamRunHistory(ctx context.Context, in *StreamRunHistoryRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WorkflowEvent], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &KronosService_ServiceDesc.Streams[0], KronosService_StreamRunHistory_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamRunHistoryRequest, WorkflowEvent]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type KronosService_StreamRunHistoryClient = grpc.ServerStreamingClient[WorkflowEvent]
+
 // KronosServiceServer is the server API for KronosService service.
 // All implementations must embed UnimplementedKronosServiceServer
 // for forward compatibility.
 type KronosServiceServer interface {
+	// Job queue API (legacy, still useful for simple background work)
 	SubmitJob(context.Context, *SubmitJobRequest) (*SubmitJobResponse, error)
 	GetJob(context.Context, *GetJobRequest) (*GetJobResponse, error)
 	ListJobs(context.Context, *ListJobsRequest) (*ListJobsResponse, error)
 	CancelJob(context.Context, *CancelJobRequest) (*CancelJobResponse, error)
+	// Workflow API (durable multi-step workflows)
+	StartWorkflow(context.Context, *StartWorkflowRequest) (*StartWorkflowResponse, error)
+	GetRun(context.Context, *GetRunRequest) (*GetRunResponse, error)
+	ListRuns(context.Context, *ListRunsRequest) (*ListRunsResponse, error)
+	CancelRun(context.Context, *CancelRunRequest) (*CancelRunResponse, error)
+	GetRunEvents(context.Context, *GetRunEventsRequest) (*GetRunEventsResponse, error)
+	StreamRunHistory(*StreamRunHistoryRequest, grpc.ServerStreamingServer[WorkflowEvent]) error
 	mustEmbedUnimplementedKronosServiceServer()
 }
 
@@ -112,6 +203,24 @@ func (UnimplementedKronosServiceServer) ListJobs(context.Context, *ListJobsReque
 }
 func (UnimplementedKronosServiceServer) CancelJob(context.Context, *CancelJobRequest) (*CancelJobResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelJob not implemented")
+}
+func (UnimplementedKronosServiceServer) StartWorkflow(context.Context, *StartWorkflowRequest) (*StartWorkflowResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StartWorkflow not implemented")
+}
+func (UnimplementedKronosServiceServer) GetRun(context.Context, *GetRunRequest) (*GetRunResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRun not implemented")
+}
+func (UnimplementedKronosServiceServer) ListRuns(context.Context, *ListRunsRequest) (*ListRunsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListRuns not implemented")
+}
+func (UnimplementedKronosServiceServer) CancelRun(context.Context, *CancelRunRequest) (*CancelRunResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelRun not implemented")
+}
+func (UnimplementedKronosServiceServer) GetRunEvents(context.Context, *GetRunEventsRequest) (*GetRunEventsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRunEvents not implemented")
+}
+func (UnimplementedKronosServiceServer) StreamRunHistory(*StreamRunHistoryRequest, grpc.ServerStreamingServer[WorkflowEvent]) error {
+	return status.Error(codes.Unimplemented, "method StreamRunHistory not implemented")
 }
 func (UnimplementedKronosServiceServer) mustEmbedUnimplementedKronosServiceServer() {}
 func (UnimplementedKronosServiceServer) testEmbeddedByValue()                       {}
@@ -206,6 +315,107 @@ func _KronosService_CancelJob_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KronosService_StartWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartWorkflowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KronosServiceServer).StartWorkflow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KronosService_StartWorkflow_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KronosServiceServer).StartWorkflow(ctx, req.(*StartWorkflowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KronosService_GetRun_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRunRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KronosServiceServer).GetRun(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KronosService_GetRun_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KronosServiceServer).GetRun(ctx, req.(*GetRunRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KronosService_ListRuns_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRunsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KronosServiceServer).ListRuns(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KronosService_ListRuns_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KronosServiceServer).ListRuns(ctx, req.(*ListRunsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KronosService_CancelRun_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelRunRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KronosServiceServer).CancelRun(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KronosService_CancelRun_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KronosServiceServer).CancelRun(ctx, req.(*CancelRunRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KronosService_GetRunEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRunEventsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KronosServiceServer).GetRunEvents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KronosService_GetRunEvents_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KronosServiceServer).GetRunEvents(ctx, req.(*GetRunEventsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KronosService_StreamRunHistory_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamRunHistoryRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(KronosServiceServer).StreamRunHistory(m, &grpc.GenericServerStream[StreamRunHistoryRequest, WorkflowEvent]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type KronosService_StreamRunHistoryServer = grpc.ServerStreamingServer[WorkflowEvent]
+
 // KronosService_ServiceDesc is the grpc.ServiceDesc for KronosService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -229,7 +439,33 @@ var KronosService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "CancelJob",
 			Handler:    _KronosService_CancelJob_Handler,
 		},
+		{
+			MethodName: "StartWorkflow",
+			Handler:    _KronosService_StartWorkflow_Handler,
+		},
+		{
+			MethodName: "GetRun",
+			Handler:    _KronosService_GetRun_Handler,
+		},
+		{
+			MethodName: "ListRuns",
+			Handler:    _KronosService_ListRuns_Handler,
+		},
+		{
+			MethodName: "CancelRun",
+			Handler:    _KronosService_CancelRun_Handler,
+		},
+		{
+			MethodName: "GetRunEvents",
+			Handler:    _KronosService_GetRunEvents_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "StreamRunHistory",
+			Handler:       _KronosService_StreamRunHistory_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "kronos/v1/kronos.proto",
 }
