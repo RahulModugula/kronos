@@ -176,7 +176,7 @@ func main() {
 			middleware.UnaryLogger(log),
 		),
 	)
-	kronosv1.RegisterKronosServiceServer(grpcServer, api.New(instrumentedStore, log))
+	kronosv1.RegisterKronosServiceServer(grpcServer, api.New(instrumentedStore, workflowStore, workflowRegistry, workflowEngine, log))
 	grpc_health_v1.RegisterHealthServer(grpcServer, healthChecker)
 	reflection.Register(grpcServer)
 
