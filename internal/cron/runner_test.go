@@ -16,10 +16,10 @@ import (
 // --- Mock cron.Store ---
 
 type mockCronStore struct {
-	mu       sync.Mutex
-	jobs     []*CronJob
-	fired    map[uuid.UUID]time.Time
-	lastErr  error
+	mu      sync.Mutex
+	jobs    []*CronJob
+	fired   map[uuid.UUID]time.Time
+	lastErr error
 }
 
 func newMockCronStore(jobs ...*CronJob) *mockCronStore {
@@ -87,8 +87,8 @@ func (m *mockJobStore) UpdateStatus(_ context.Context, id uuid.UUID, status stor
 func (m *mockJobStore) IncrementRetry(_ context.Context, id uuid.UUID, nextRun time.Time) error {
 	return nil
 }
-func (m *mockJobStore) CancelJob(_ context.Context, id uuid.UUID) error { return nil }
-func (m *mockJobStore) QueueDepth(_ context.Context) (int64, error)     { return 0, nil }
+func (m *mockJobStore) CancelJob(_ context.Context, id uuid.UUID) error    { return nil }
+func (m *mockJobStore) QueueDepth(_ context.Context) (int64, error)        { return 0, nil }
 func (m *mockJobStore) RetryDeadJob(_ context.Context, id uuid.UUID) error { return nil }
 func (m *mockJobStore) ListDeadJobs(_ context.Context, pageSize int, pageToken string) ([]*store.Job, string, error) {
 	return nil, "", nil

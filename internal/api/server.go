@@ -186,12 +186,13 @@ func protoStatusToStore(s kronosv1.JobStatus) store.Status {
 		return store.StatusCancelled
 	case kronosv1.JobStatus_JOB_STATUS_DEAD:
 		return store.StatusDead
-	default:
+	case kronosv1.JobStatus_JOB_STATUS_UNSPECIFIED:
 		return store.StatusPending
 	}
+	return store.StatusPending
 }
 
-// ensure unused import is used — timestamppb uses time
+// Ensure unused import is used — timestamppb uses time.
 var _ = fmt.Sprintf
 var _ = time.Now
 
@@ -342,7 +343,7 @@ func (srv *Server) GetRunEvents(ctx context.Context, req *kronosv1.GetRunEventsR
 }
 
 // StreamRunHistory streams all events for a workflow run (for replay).
-func (srv *Server) StreamRunHistory(req *kronosv1.StreamRunHistoryRequest, stream grpc.ServerStream) error {
+func (srv *Server) StreamRunHistory(req *kronosv1.StreamRunHistoryRequest, stream grpc.ServerStreamingServer[kronosv1.WorkflowEvent]) error {
 	if req.RunId == "" {
 		return status.Error(codes.InvalidArgument, "run_id is required")
 	}
@@ -353,7 +354,7 @@ func (srv *Server) StreamRunHistory(req *kronosv1.StreamRunHistoryRequest, strea
 	}
 
 	for _, event := range events {
-		evt := &kronosv1.WorkflowEvent{
+		evt := kronosv1.WorkflowEvent{
 			Id:        event.ID,
 			RunId:     event.RunID,
 			Seq:       int32(event.Seq),
@@ -361,7 +362,7 @@ func (srv *Server) StreamRunHistory(req *kronosv1.StreamRunHistoryRequest, strea
 			EventType: string(event.EventType),
 			Payload:   event.Payload,
 		}
-		if err := stream.SendMsg(evt); err != nil {
+		if err := stream.Send(&evt); err != nil {
 			return err
 		}
 	}
@@ -370,16 +371,21 @@ func (srv *Server) StreamRunHistory(req *kronosv1.StreamRunHistoryRequest, strea
 
 // toWorkflowRunProto converts a store.WorkflowRun to its protobuf representation.
 func toWorkflowRunProto(run *workflow.WorkflowRun) *kronosv1.WorkflowRun {
+	parentRunID := ""
+	if run.ParentRunID != nil {
+		parentRunID = *run.ParentRunID
+	}
+
 	proto := &kronosv1.WorkflowRun{
-		Id:        run.ID,
-		WorkflowId: run.WorkflowID,
-		Status:    storeWorkflowStatusToProto(run.Status),
-		Input:     run.Input,
-		Output:    run.Output,
-		Error:     run.Error,
-		ParentRunId: run.ParentRunID,
-		CreatedAt: timestamppb.New(run.CreatedAt),
-		UpdatedAt: timestamppb.New(run.UpdatedAt),
+		Id:          run.ID,
+		WorkflowId:  run.WorkflowID,
+		Status:      storeWorkflowStatusToProto(run.Status),
+		Input:       run.Input,
+		Output:      run.Output,
+		Error:       run.Error,
+		ParentRunId: parentRunID,
+		CreatedAt:   timestamppb.New(run.CreatedAt),
+		UpdatedAt:   timestamppb.New(run.UpdatedAt),
 	}
 	if run.StartedAt != nil {
 		proto.StartedAt = timestamppb.New(*run.StartedAt)
@@ -423,7 +429,8 @@ func protoWorkflowStatusToStore(s kronosv1.WorkflowRunStatus) string {
 		return "cancelled"
 	case kronosv1.WorkflowRunStatus_WORKFLOW_RUN_STATUS_FORKED:
 		return "forked"
-	default:
+	case kronosv1.WorkflowRunStatus_WORKFLOW_RUN_STATUS_UNSPECIFIED:
 		return "pending"
 	}
+	return "pending"
 }

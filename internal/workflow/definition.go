@@ -20,13 +20,6 @@ type StepDef struct {
 	Dependencies []string // names of steps this depends on; empty = no dependencies
 }
 
-// Step is a public builder for defining workflow steps.
-type Step struct {
-	name         string
-	handler      StepFunc
-	dependencies []string
-}
-
 // Workflow describes a repeatable multi-step process.
 // Workflows are versioned and immutable: changes create a new Workflow with a new fingerprint.
 type Workflow struct {

@@ -2,6 +2,7 @@ package api_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"testing"
@@ -18,6 +19,7 @@ import (
 	kronosv1 "github.com/rahulmodugula/kronos/gen/kronos/v1"
 	"github.com/rahulmodugula/kronos/internal/api"
 	"github.com/rahulmodugula/kronos/internal/store"
+	"github.com/rahulmodugula/kronos/internal/workflow"
 )
 
 // mockStore implements store.Store with minimal stubs for API tests.
@@ -40,6 +42,88 @@ func (m *mockStore) GetJobByIdempotencyKey(_ context.Context, _ string) (*store.
 	return nil, nil
 }
 
+// mockWorkflowStore implements workflow.WorkflowStore with minimal stubs for API tests.
+type mockWorkflowStore struct{}
+
+func (m *mockWorkflowStore) CreateRun(_ context.Context, run *workflow.WorkflowRun) (*workflow.WorkflowRun, error) {
+	run.ID = uuid.New().String()
+	run.CreatedAt = time.Now()
+	run.UpdatedAt = time.Now()
+	return run, nil
+}
+
+func (m *mockWorkflowStore) GetRun(_ context.Context, id string) (*workflow.WorkflowRun, error) {
+	return nil, fmt.Errorf("run %s not found", id)
+}
+
+func (m *mockWorkflowStore) ListRuns(_ context.Context, _ *string, _ *string, _ int, _ string) ([]*workflow.WorkflowRun, string, error) {
+	return nil, "", nil
+}
+
+func (m *mockWorkflowStore) UpdateRunStatus(_ context.Context, _ string, _ string, _ *string, _ *time.Time) error {
+	return nil
+}
+
+func (m *mockWorkflowStore) CancelRun(_ context.Context, _ string) error {
+	return nil
+}
+
+func (m *mockWorkflowStore) AppendEvent(_ context.Context, _ *workflow.Event) (int, error) {
+	return 0, nil
+}
+
+func (m *mockWorkflowStore) GetEvents(_ context.Context, _ string) ([]*workflow.Event, error) {
+	return nil, nil
+}
+
+func (m *mockWorkflowStore) GetEventsAfterSeq(_ context.Context, _ string, _ int) ([]*workflow.Event, error) {
+	return nil, nil
+}
+
+func (m *mockWorkflowStore) CreateWorkflow(_ context.Context, _ *workflow.Workflow) error {
+	return nil
+}
+
+func (m *mockWorkflowStore) GetWorkflow(_ context.Context, _ string) (*workflow.Workflow, error) {
+	return nil, nil
+}
+
+func (m *mockWorkflowStore) GetWorkflowByNameFingerprint(_ context.Context, _ string, _ string) (*workflow.Workflow, error) {
+	return nil, nil
+}
+
+func (m *mockWorkflowStore) GetLatestWorkflow(_ context.Context, _ string) (*workflow.Workflow, error) {
+	return nil, nil
+}
+
+func (m *mockWorkflowStore) UpdateRunOutput(_ context.Context, _ string, _ json.RawMessage) error {
+	return nil
+}
+
+func (m *mockWorkflowStore) PutBlob(_ context.Context, _ string, _ []byte) error {
+	return nil
+}
+
+func (m *mockWorkflowStore) GetBlob(_ context.Context, _ string) ([]byte, error) {
+	return nil, nil
+}
+
+func (m *mockWorkflowStore) DeleteBlob(_ context.Context, _ string) error {
+	return nil
+}
+
+func (m *mockWorkflowStore) UpsertStepExecution(_ context.Context, _ *workflow.StepExecution) error {
+	return nil
+}
+
+func (m *mockWorkflowStore) GetStepExecution(_ context.Context, _ string, _ string) (*workflow.StepExecution, error) {
+	return nil, nil
+}
+
+func (m *mockWorkflowStore) ListStepExecutions(_ context.Context, _ string) ([]*workflow.StepExecution, error) {
+	return nil, nil
+}
+
 const bufSize = 1024 * 1024
 
 func newTestClient(t *testing.T) kronosv1.KronosServiceClient {
@@ -47,12 +131,16 @@ func newTestClient(t *testing.T) kronosv1.KronosServiceClient {
 
 	lis := bufconn.Listen(bufSize)
 	srv := grpc.NewServer()
-	kronosv1.RegisterKronosServiceServer(srv, api.New(&mockStore{}, zerolog.Nop()))
+
+	// Create mock workflow dependencies
+	wfStore := &mockWorkflowStore{}
+	wfRegistry := workflow.NewRegistry()
+	wfEngine := workflow.NewEngine(wfStore, wfRegistry, zerolog.Nop())
+
+	kronosv1.RegisterKronosServiceServer(srv, api.New(&mockStore{}, wfStore, wfRegistry, wfEngine, zerolog.Nop()))
 
 	go func() {
-		if err := srv.Serve(lis); err != nil {
-			// server stopped
-		}
+		_ = srv.Serve(lis) // server will stop gracefully
 	}()
 	t.Cleanup(srv.GracefulStop)
 

@@ -71,7 +71,12 @@ func (m *mockWorkflowStore) ListRuns(ctx context.Context, workflowName *string, 
 func (m *mockWorkflowStore) UpdateRunStatus(ctx context.Context, runID, status string, errMsg *string, finishedAt *time.Time) error {
 	if run, ok := m.runs[runID]; ok {
 		run.Status = status
-		run.Error = *errMsg
+		if errMsg != nil {
+			run.Error = *errMsg
+		}
+		if finishedAt != nil {
+			run.FinishedAt = finishedAt
+		}
 	}
 	return nil
 }
@@ -133,7 +138,7 @@ func (m *mockWorkflowStore) ListStepExecutions(ctx context.Context, runID string
 	return nil, nil
 }
 
-// Test: Simple linear workflow with two steps
+// Test: Simple linear workflow with two steps.
 func TestEngineLinearWorkflow(t *testing.T) {
 	ctx := context.Background()
 	log := zerolog.Nop()
@@ -200,7 +205,7 @@ func TestEngineLinearWorkflow(t *testing.T) {
 	assert.Equal(t, 2, completedSteps, "both steps should have completed events")
 }
 
-// Test: Workflow validation catches cycles
+// Test: Workflow validation catches cycles.
 func TestWorkflowValidationDetectsCycles(t *testing.T) {
 	// Create a workflow with a cycle: step1 -> step2 -> step1
 	// This should be prevented by the validation

@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-
 // Config is the single source of truth for runtime configuration.
 // All values are loaded from environment variables with documented defaults.
 type Config struct {
@@ -21,10 +20,10 @@ type Config struct {
 	JobTimeout        time.Duration
 
 	// Backoff configuration
-	RetryBaseDelay   time.Duration
-	RetryMaxDelay    time.Duration
-	RetryMultiplier  float64
-	RetryJitter      float64
+	RetryBaseDelay  time.Duration
+	RetryMaxDelay   time.Duration
+	RetryMultiplier float64
+	RetryJitter     float64
 }
 
 // Load reads config from environment variables.

@@ -162,5 +162,5 @@ func TestPool_ContextCancellationPropagatedToHandler(t *testing.T) {
 	}
 }
 
-// ensure time import used
+// Ensure time import is used.
 var _ = time.Second

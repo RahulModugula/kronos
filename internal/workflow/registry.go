@@ -9,7 +9,7 @@ import (
 type Registry struct {
 	mu        sync.RWMutex
 	workflows map[string]*Workflow // name -> latest definition
-	all       map[string]*Workflow  // name+fingerprint -> definition
+	all       map[string]*Workflow // name+fingerprint -> definition
 }
 
 // NewRegistry creates a new workflow registry.
