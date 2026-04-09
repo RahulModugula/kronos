@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -9,9 +10,10 @@ import (
 )
 
 // StepFunc is the signature for a workflow step handler.
-// It receives the step input (from upstream outputs or workflow input) and returns the step output.
+// It receives a context (for cancellation, timeouts, tracing) and the step input
+// (from upstream outputs or workflow input) and returns the step output.
 // Implementations should be idempotent — they may be called more than once on retry.
-type StepFunc func(input json.RawMessage) (json.RawMessage, error)
+type StepFunc func(ctx context.Context, input json.RawMessage) (json.RawMessage, error)
 
 // StepDef describes a single step in a workflow DAG.
 type StepDef struct {

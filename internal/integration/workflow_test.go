@@ -1,3 +1,5 @@
+//go:build integration
+
 package integration
 
 import (
@@ -131,11 +133,11 @@ func TestWorkflowEngine(t *testing.T) {
 	step2Called := false
 
 	wf := workflow.NewWorkflow("test-workflow", "v1").
-		AddStep("step1", func(input json.RawMessage) (json.RawMessage, error) {
+		AddStep("step1", func(ctx context.Context, input json.RawMessage) (json.RawMessage, error) {
 			step1Called = true
 			return json.Marshal(map[string]string{"result": "step1_done"})
 		}, nil).
-		AddStep("step2", func(input json.RawMessage) (json.RawMessage, error) {
+		AddStep("step2", func(ctx context.Context, input json.RawMessage) (json.RawMessage, error) {
 			step2Called = true
 			return json.Marshal(map[string]string{"result": "step2_done"})
 		}, []string{"step1"})

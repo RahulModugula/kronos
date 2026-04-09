@@ -148,7 +148,7 @@ func (e *Engine) ExecuteStep(ctx context.Context, runID, stepName string) error 
 
 	// Execute the step
 	startTime := time.Now()
-	stepOutput, execErr := stepDef.Handler(stepInput)
+	stepOutput, execErr := stepDef.Handler(ctx, stepInput)
 	duration := time.Since(startTime)
 	durationMs := int(duration.Milliseconds())
 
@@ -258,6 +258,151 @@ func (e *Engine) ExecuteStep(ctx context.Context, runID, stepName string) error 
 	}
 
 	return nil
+}
+
+// ForkFromStep creates a new run that reuses recorded outputs from all steps
+// before fromStep, then schedules fromStep and all downstream steps for re-execution.
+// Returns the new forked run ID.
+func (e *Engine) ForkFromStep(ctx context.Context, runID, fromStep string) (string, error) {
+	e.log.Info().Str("run_id", runID).Str("from_step", fromStep).Msg("forking workflow run")
+
+	run, err := e.store.GetRun(ctx, runID)
+	if err != nil {
+		return "", fmt.Errorf("get run: %w", err)
+	}
+
+	wf, err := e.store.GetWorkflow(ctx, run.WorkflowID)
+	if err != nil {
+		return "", fmt.Errorf("get workflow: %w", err)
+	}
+
+	registeredWf := e.registry.Get(wf.Name)
+	if registeredWf == nil {
+		return "", fmt.Errorf("workflow %q not registered", wf.Name)
+	}
+
+	fromDef := registeredWf.GetStepDef(fromStep)
+	if fromDef == nil {
+		return "", fmt.Errorf("step %q not found in workflow", fromStep)
+	}
+
+	events, err := e.store.GetEvents(ctx, runID)
+	if err != nil {
+		return "", fmt.Errorf("get events: %w", err)
+	}
+
+	completedOutputs := make(map[string]json.RawMessage)
+	var completedSteps []string
+	for _, event := range events {
+		if event.EventType == EventStepOutputRecorded {
+			var payload StepOutputRecordedPayload
+			if err := json.Unmarshal(event.Payload, &payload); err != nil {
+				continue
+			}
+			completedOutputs[payload.StepName] = payload.Output
+			completedSteps = append(completedSteps, payload.StepName)
+		}
+	}
+
+	completedSet := make(map[string]bool)
+	for _, s := range completedSteps {
+		completedSet[s] = true
+	}
+
+	fromDepSet := make(map[string]bool)
+	for _, dep := range fromDef.Dependencies {
+		fromDepSet[dep] = true
+	}
+	for _, dep := range fromDef.Dependencies {
+		if !completedSet[dep] {
+			return "", fmt.Errorf("cannot fork from %q: dependency %q has not completed", fromStep, dep)
+		}
+	}
+
+	forkedRun := &WorkflowRun{
+		WorkflowID:  run.WorkflowID,
+		Status:      "running",
+		Input:       run.Input,
+		ParentRunID: &runID,
+	}
+	created, err := e.store.CreateRun(ctx, forkedRun)
+	if err != nil {
+		return "", fmt.Errorf("create forked run: %w", err)
+	}
+
+	now := time.Now().UTC()
+	runStarted, err := NewEvent(created.ID, 0, EventRunStarted, RunStartedPayload{
+		WorkflowName:    wf.Name,
+		WorkflowVersion: wf.Version,
+		Input:           run.Input,
+	})
+	if err != nil {
+		return "", fmt.Errorf("create run started event: %w", err)
+	}
+	if _, err := e.store.AppendEvent(ctx, runStarted); err != nil {
+		return "", fmt.Errorf("append run started event: %w", err)
+	}
+
+	seq := 1
+	for _, stepName := range completedSteps {
+		if fromDepSet[stepName] {
+			output := completedOutputs[stepName]
+
+			inputEvt, err := NewEvent(created.ID, seq, EventStepInputRecorded, StepInputRecordedPayload{
+				StepName: stepName,
+				Input:    output,
+			})
+			if err != nil {
+				return "", fmt.Errorf("create step input event: %w", err)
+			}
+			if _, err := e.store.AppendEvent(ctx, inputEvt); err != nil {
+				return "", fmt.Errorf("append step input event: %w", err)
+			}
+			seq++
+
+			outputEvt, err := NewEvent(created.ID, seq, EventStepOutputRecorded, StepOutputRecordedPayload{
+				StepName:   stepName,
+				Output:     output,
+				DurationMs: 0,
+			})
+			if err != nil {
+				return "", fmt.Errorf("create step output event: %w", err)
+			}
+			if _, err := e.store.AppendEvent(ctx, outputEvt); err != nil {
+				return "", fmt.Errorf("append step output event: %w", err)
+			}
+			seq++
+
+			completedEvt, err := NewEvent(created.ID, seq, EventStepCompleted, StepCompletedPayload{
+				StepName: stepName,
+			})
+			if err != nil {
+				return "", fmt.Errorf("create step completed event: %w", err)
+			}
+			if _, err := e.store.AppendEvent(ctx, completedEvt); err != nil {
+				return "", fmt.Errorf("append step completed event: %w", err)
+			}
+			seq++
+		}
+	}
+
+	forkEvt, err := NewEvent(created.ID, seq, EventRunForked, RunForkedPayload{
+		ForkedRunID:  created.ID,
+		FromStepName: fromStep,
+	})
+	if err != nil {
+		return "", fmt.Errorf("create fork event: %w", err)
+	}
+	if _, err := e.store.AppendEvent(ctx, forkEvt); err != nil {
+		return "", fmt.Errorf("append fork event: %w", err)
+	}
+
+	if err := e.store.UpdateRunStatus(ctx, created.ID, "running", nil, &now); err != nil {
+		return "", fmt.Errorf("update run status: %w", err)
+	}
+
+	e.log.Info().Str("forked_run_id", created.ID).Msg("workflow run forked")
+	return created.ID, nil
 }
 
 // ComputeBlobHash computes a content hash for a blob.

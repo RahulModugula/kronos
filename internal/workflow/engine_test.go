@@ -152,11 +152,11 @@ func TestEngineLinearWorkflow(t *testing.T) {
 	step2Executed := false
 
 	wf := NewWorkflow("test-workflow", "v1").
-		AddStep("step1", func(input json.RawMessage) (json.RawMessage, error) {
+		AddStep("step1", func(ctx context.Context, input json.RawMessage) (json.RawMessage, error) {
 			step1Executed = true
 			return json.Marshal(map[string]string{"step1_output": "done"})
 		}, nil).
-		AddStep("step2", func(input json.RawMessage) (json.RawMessage, error) {
+		AddStep("step2", func(ctx context.Context, input json.RawMessage) (json.RawMessage, error) {
 			step2Executed = true
 			return json.Marshal(map[string]string{"step2_output": "finished"})
 		}, []string{"step1"})
@@ -210,10 +210,10 @@ func TestWorkflowValidationDetectsCycles(t *testing.T) {
 	// Create a workflow with a cycle: step1 -> step2 -> step1
 	// This should be prevented by the validation
 	wf := NewWorkflow("cyclic", "v1").
-		AddStep("step1", func(input json.RawMessage) (json.RawMessage, error) {
+		AddStep("step1", func(ctx context.Context, input json.RawMessage) (json.RawMessage, error) {
 			return json.RawMessage(`{}`), nil
 		}, []string{"step2"}).
-		AddStep("step2", func(input json.RawMessage) (json.RawMessage, error) {
+		AddStep("step2", func(ctx context.Context, input json.RawMessage) (json.RawMessage, error) {
 			return json.RawMessage(`{}`), nil
 		}, []string{"step1"})
 
