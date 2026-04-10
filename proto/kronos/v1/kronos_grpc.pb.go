@@ -29,6 +29,7 @@ const (
 	KronosService_CancelRun_FullMethodName        = "/kronos.v1.KronosService/CancelRun"
 	KronosService_GetRunEvents_FullMethodName     = "/kronos.v1.KronosService/GetRunEvents"
 	KronosService_StreamRunHistory_FullMethodName = "/kronos.v1.KronosService/StreamRunHistory"
+	KronosService_ForkRun_FullMethodName          = "/kronos.v1.KronosService/ForkRun"
 )
 
 // KronosServiceClient is the client API for KronosService service.
@@ -47,6 +48,7 @@ type KronosServiceClient interface {
 	CancelRun(ctx context.Context, in *CancelRunRequest, opts ...grpc.CallOption) (*CancelRunResponse, error)
 	GetRunEvents(ctx context.Context, in *GetRunEventsRequest, opts ...grpc.CallOption) (*GetRunEventsResponse, error)
 	StreamRunHistory(ctx context.Context, in *StreamRunHistoryRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WorkflowEvent], error)
+	ForkRun(ctx context.Context, in *ForkRunRequest, opts ...grpc.CallOption) (*ForkRunResponse, error)
 }
 
 type kronosServiceClient struct {
@@ -166,6 +168,16 @@ func (c *kronosServiceClient) StreamRunHistory(ctx context.Context, in *StreamRu
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type KronosService_StreamRunHistoryClient = grpc.ServerStreamingClient[WorkflowEvent]
 
+func (c *kronosServiceClient) ForkRun(ctx context.Context, in *ForkRunRequest, opts ...grpc.CallOption) (*ForkRunResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ForkRunResponse)
+	err := c.cc.Invoke(ctx, KronosService_ForkRun_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // KronosServiceServer is the server API for KronosService service.
 // All implementations must embed UnimplementedKronosServiceServer
 // for forward compatibility.
@@ -182,6 +194,7 @@ type KronosServiceServer interface {
 	CancelRun(context.Context, *CancelRunRequest) (*CancelRunResponse, error)
 	GetRunEvents(context.Context, *GetRunEventsRequest) (*GetRunEventsResponse, error)
 	StreamRunHistory(*StreamRunHistoryRequest, grpc.ServerStreamingServer[WorkflowEvent]) error
+	ForkRun(context.Context, *ForkRunRequest) (*ForkRunResponse, error)
 	mustEmbedUnimplementedKronosServiceServer()
 }
 
@@ -221,6 +234,9 @@ func (UnimplementedKronosServiceServer) GetRunEvents(context.Context, *GetRunEve
 }
 func (UnimplementedKronosServiceServer) StreamRunHistory(*StreamRunHistoryRequest, grpc.ServerStreamingServer[WorkflowEvent]) error {
 	return status.Error(codes.Unimplemented, "method StreamRunHistory not implemented")
+}
+func (UnimplementedKronosServiceServer) ForkRun(context.Context, *ForkRunRequest) (*ForkRunResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ForkRun not implemented")
 }
 func (UnimplementedKronosServiceServer) mustEmbedUnimplementedKronosServiceServer() {}
 func (UnimplementedKronosServiceServer) testEmbeddedByValue()                       {}
@@ -416,6 +432,24 @@ func _KronosService_StreamRunHistory_Handler(srv interface{}, stream grpc.Server
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type KronosService_StreamRunHistoryServer = grpc.ServerStreamingServer[WorkflowEvent]
 
+func _KronosService_ForkRun_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ForkRunRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KronosServiceServer).ForkRun(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KronosService_ForkRun_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KronosServiceServer).ForkRun(ctx, req.(*ForkRunRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // KronosService_ServiceDesc is the grpc.ServiceDesc for KronosService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -458,6 +492,10 @@ var KronosService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRunEvents",
 			Handler:    _KronosService_GetRunEvents_Handler,
+		},
+		{
+			MethodName: "ForkRun",
+			Handler:    _KronosService_ForkRun_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

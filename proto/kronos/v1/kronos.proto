@@ -168,6 +168,18 @@ message StreamRunHistoryRequest {
   string run_id = 1; // required
 }
 
+// ForkRunRequest forks a workflow run from a given step, reusing recorded
+// outputs of all upstream steps and scheduling downstream steps for re-execution.
+message ForkRunRequest {
+  string run_id    = 1; // required: the run to fork
+  string from_step = 2; // required: step name to fork from (exclusive: this step and downstream re-execute)
+}
+
+// ForkRunResponse
+message ForkRunResponse {
+  string forked_run_id = 1; // ID of the newly created forked run
+}
+
 service KronosService {
   // Job queue API (legacy, still useful for simple background work)
   rpc SubmitJob(SubmitJobRequest) returns (SubmitJobResponse);
@@ -182,4 +194,5 @@ service KronosService {
   rpc CancelRun(CancelRunRequest) returns (CancelRunResponse);
   rpc GetRunEvents(GetRunEventsRequest) returns (GetRunEventsResponse);
   rpc StreamRunHistory(StreamRunHistoryRequest) returns (stream WorkflowEvent);
+  rpc ForkRun(ForkRunRequest) returns (ForkRunResponse);
 }

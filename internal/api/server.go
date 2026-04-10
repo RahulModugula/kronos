@@ -434,3 +434,20 @@ func protoWorkflowStatusToStore(s kronosv1.WorkflowRunStatus) string {
 	}
 	return "pending"
 }
+
+func (srv *Server) ForkRun(ctx context.Context, req *kronosv1.ForkRunRequest) (*kronosv1.ForkRunResponse, error) {
+	if req.GetRunId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "run_id is required")
+	}
+	if req.GetFromStep() == "" {
+		return nil, status.Error(codes.InvalidArgument, "from_step is required")
+	}
+
+	forkedID, err := srv.workflowEngine.ForkFromStep(ctx, req.GetRunId(), req.GetFromStep())
+	if err != nil {
+		srv.log.Error().Err(err).Str("run_id", req.GetRunId()).Str("from_step", req.GetFromStep()).Msg("fork failed")
+		return nil, status.Errorf(codes.Internal, "fork failed: %v", err)
+	}
+
+	return &kronosv1.ForkRunResponse{ForkedRunId: forkedID}, nil
+}

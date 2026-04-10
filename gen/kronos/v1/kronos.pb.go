@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v7.34.1
-// source: kronos/v1/kronos.proto
+// source: proto/kronos/v1/kronos.proto
 
 package kronosv1
 
@@ -68,11 +68,11 @@ func (x JobStatus) String() string {
 }
 
 func (JobStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_kronos_v1_kronos_proto_enumTypes[0].Descriptor()
+	return file_proto_kronos_v1_kronos_proto_enumTypes[0].Descriptor()
 }
 
 func (JobStatus) Type() protoreflect.EnumType {
-	return &file_kronos_v1_kronos_proto_enumTypes[0]
+	return &file_proto_kronos_v1_kronos_proto_enumTypes[0]
 }
 
 func (x JobStatus) Number() protoreflect.EnumNumber {
@@ -81,7 +81,7 @@ func (x JobStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use JobStatus.Descriptor instead.
 func (JobStatus) EnumDescriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{0}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{0}
 }
 
 // WorkflowRunStatus represents the lifecycle state of a workflow run.
@@ -130,11 +130,11 @@ func (x WorkflowRunStatus) String() string {
 }
 
 func (WorkflowRunStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_kronos_v1_kronos_proto_enumTypes[1].Descriptor()
+	return file_proto_kronos_v1_kronos_proto_enumTypes[1].Descriptor()
 }
 
 func (WorkflowRunStatus) Type() protoreflect.EnumType {
-	return &file_kronos_v1_kronos_proto_enumTypes[1]
+	return &file_proto_kronos_v1_kronos_proto_enumTypes[1]
 }
 
 func (x WorkflowRunStatus) Number() protoreflect.EnumNumber {
@@ -143,7 +143,7 @@ func (x WorkflowRunStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WorkflowRunStatus.Descriptor instead.
 func (WorkflowRunStatus) EnumDescriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{1}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{1}
 }
 
 type Job struct {
@@ -166,7 +166,7 @@ type Job struct {
 
 func (x *Job) Reset() {
 	*x = Job{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[0]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -178,7 +178,7 @@ func (x *Job) String() string {
 func (*Job) ProtoMessage() {}
 
 func (x *Job) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[0]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -191,7 +191,7 @@ func (x *Job) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Job.ProtoReflect.Descriptor instead.
 func (*Job) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{0}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Job) GetId() string {
@@ -293,7 +293,7 @@ type SubmitJobRequest struct {
 
 func (x *SubmitJobRequest) Reset() {
 	*x = SubmitJobRequest{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[1]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -305,7 +305,7 @@ func (x *SubmitJobRequest) String() string {
 func (*SubmitJobRequest) ProtoMessage() {}
 
 func (x *SubmitJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[1]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -318,7 +318,7 @@ func (x *SubmitJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitJobRequest.ProtoReflect.Descriptor instead.
 func (*SubmitJobRequest) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{1}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SubmitJobRequest) GetName() string {
@@ -379,7 +379,7 @@ type SubmitJobResponse struct {
 
 func (x *SubmitJobResponse) Reset() {
 	*x = SubmitJobResponse{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[2]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -391,7 +391,7 @@ func (x *SubmitJobResponse) String() string {
 func (*SubmitJobResponse) ProtoMessage() {}
 
 func (x *SubmitJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[2]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -404,7 +404,7 @@ func (x *SubmitJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitJobResponse.ProtoReflect.Descriptor instead.
 func (*SubmitJobResponse) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{2}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SubmitJobResponse) GetJobId() string {
@@ -423,7 +423,7 @@ type GetJobRequest struct {
 
 func (x *GetJobRequest) Reset() {
 	*x = GetJobRequest{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[3]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -435,7 +435,7 @@ func (x *GetJobRequest) String() string {
 func (*GetJobRequest) ProtoMessage() {}
 
 func (x *GetJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[3]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -448,7 +448,7 @@ func (x *GetJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobRequest.ProtoReflect.Descriptor instead.
 func (*GetJobRequest) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{3}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetJobRequest) GetJobId() string {
@@ -467,7 +467,7 @@ type GetJobResponse struct {
 
 func (x *GetJobResponse) Reset() {
 	*x = GetJobResponse{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[4]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -479,7 +479,7 @@ func (x *GetJobResponse) String() string {
 func (*GetJobResponse) ProtoMessage() {}
 
 func (x *GetJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[4]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -492,7 +492,7 @@ func (x *GetJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobResponse.ProtoReflect.Descriptor instead.
 func (*GetJobResponse) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{4}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetJobResponse) GetJob() *Job {
@@ -513,7 +513,7 @@ type ListJobsRequest struct {
 
 func (x *ListJobsRequest) Reset() {
 	*x = ListJobsRequest{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[5]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -525,7 +525,7 @@ func (x *ListJobsRequest) String() string {
 func (*ListJobsRequest) ProtoMessage() {}
 
 func (x *ListJobsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[5]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -538,7 +538,7 @@ func (x *ListJobsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListJobsRequest.ProtoReflect.Descriptor instead.
 func (*ListJobsRequest) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{5}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ListJobsRequest) GetStatus() JobStatus {
@@ -572,7 +572,7 @@ type ListJobsResponse struct {
 
 func (x *ListJobsResponse) Reset() {
 	*x = ListJobsResponse{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[6]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -584,7 +584,7 @@ func (x *ListJobsResponse) String() string {
 func (*ListJobsResponse) ProtoMessage() {}
 
 func (x *ListJobsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[6]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -597,7 +597,7 @@ func (x *ListJobsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListJobsResponse.ProtoReflect.Descriptor instead.
 func (*ListJobsResponse) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{6}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ListJobsResponse) GetJobs() []*Job {
@@ -623,7 +623,7 @@ type CancelJobRequest struct {
 
 func (x *CancelJobRequest) Reset() {
 	*x = CancelJobRequest{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[7]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -635,7 +635,7 @@ func (x *CancelJobRequest) String() string {
 func (*CancelJobRequest) ProtoMessage() {}
 
 func (x *CancelJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[7]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -648,7 +648,7 @@ func (x *CancelJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelJobRequest.ProtoReflect.Descriptor instead.
 func (*CancelJobRequest) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{7}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CancelJobRequest) GetJobId() string {
@@ -666,7 +666,7 @@ type CancelJobResponse struct {
 
 func (x *CancelJobResponse) Reset() {
 	*x = CancelJobResponse{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[8]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -678,7 +678,7 @@ func (x *CancelJobResponse) String() string {
 func (*CancelJobResponse) ProtoMessage() {}
 
 func (x *CancelJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[8]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -691,7 +691,7 @@ func (x *CancelJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelJobResponse.ProtoReflect.Descriptor instead.
 func (*CancelJobResponse) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{8}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{8}
 }
 
 // WorkflowRun represents a single execution of a workflow.
@@ -715,7 +715,7 @@ type WorkflowRun struct {
 
 func (x *WorkflowRun) Reset() {
 	*x = WorkflowRun{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[9]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -727,7 +727,7 @@ func (x *WorkflowRun) String() string {
 func (*WorkflowRun) ProtoMessage() {}
 
 func (x *WorkflowRun) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[9]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -740,7 +740,7 @@ func (x *WorkflowRun) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowRun.ProtoReflect.Descriptor instead.
 func (*WorkflowRun) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{9}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *WorkflowRun) GetId() string {
@@ -838,7 +838,7 @@ type StartWorkflowRequest struct {
 
 func (x *StartWorkflowRequest) Reset() {
 	*x = StartWorkflowRequest{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[10]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -850,7 +850,7 @@ func (x *StartWorkflowRequest) String() string {
 func (*StartWorkflowRequest) ProtoMessage() {}
 
 func (x *StartWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[10]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -863,7 +863,7 @@ func (x *StartWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*StartWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{10}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *StartWorkflowRequest) GetWorkflowName() string {
@@ -890,7 +890,7 @@ type StartWorkflowResponse struct {
 
 func (x *StartWorkflowResponse) Reset() {
 	*x = StartWorkflowResponse{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[11]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -902,7 +902,7 @@ func (x *StartWorkflowResponse) String() string {
 func (*StartWorkflowResponse) ProtoMessage() {}
 
 func (x *StartWorkflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[11]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -915,7 +915,7 @@ func (x *StartWorkflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartWorkflowResponse.ProtoReflect.Descriptor instead.
 func (*StartWorkflowResponse) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{11}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *StartWorkflowResponse) GetRunId() string {
@@ -935,7 +935,7 @@ type GetRunRequest struct {
 
 func (x *GetRunRequest) Reset() {
 	*x = GetRunRequest{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[12]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -947,7 +947,7 @@ func (x *GetRunRequest) String() string {
 func (*GetRunRequest) ProtoMessage() {}
 
 func (x *GetRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[12]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -960,7 +960,7 @@ func (x *GetRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRunRequest.ProtoReflect.Descriptor instead.
 func (*GetRunRequest) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{12}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetRunRequest) GetRunId() string {
@@ -980,7 +980,7 @@ type GetRunResponse struct {
 
 func (x *GetRunResponse) Reset() {
 	*x = GetRunResponse{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[13]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -992,7 +992,7 @@ func (x *GetRunResponse) String() string {
 func (*GetRunResponse) ProtoMessage() {}
 
 func (x *GetRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[13]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1005,7 +1005,7 @@ func (x *GetRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRunResponse.ProtoReflect.Descriptor instead.
 func (*GetRunResponse) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{13}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetRunResponse) GetRun() *WorkflowRun {
@@ -1028,7 +1028,7 @@ type ListRunsRequest struct {
 
 func (x *ListRunsRequest) Reset() {
 	*x = ListRunsRequest{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[14]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1040,7 +1040,7 @@ func (x *ListRunsRequest) String() string {
 func (*ListRunsRequest) ProtoMessage() {}
 
 func (x *ListRunsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[14]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1053,7 +1053,7 @@ func (x *ListRunsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRunsRequest.ProtoReflect.Descriptor instead.
 func (*ListRunsRequest) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{14}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListRunsRequest) GetWorkflowName() string {
@@ -1095,7 +1095,7 @@ type ListRunsResponse struct {
 
 func (x *ListRunsResponse) Reset() {
 	*x = ListRunsResponse{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[15]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1107,7 +1107,7 @@ func (x *ListRunsResponse) String() string {
 func (*ListRunsResponse) ProtoMessage() {}
 
 func (x *ListRunsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[15]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1120,7 +1120,7 @@ func (x *ListRunsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRunsResponse.ProtoReflect.Descriptor instead.
 func (*ListRunsResponse) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{15}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListRunsResponse) GetRuns() []*WorkflowRun {
@@ -1147,7 +1147,7 @@ type CancelRunRequest struct {
 
 func (x *CancelRunRequest) Reset() {
 	*x = CancelRunRequest{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[16]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1159,7 +1159,7 @@ func (x *CancelRunRequest) String() string {
 func (*CancelRunRequest) ProtoMessage() {}
 
 func (x *CancelRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[16]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1172,7 +1172,7 @@ func (x *CancelRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelRunRequest.ProtoReflect.Descriptor instead.
 func (*CancelRunRequest) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{16}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CancelRunRequest) GetRunId() string {
@@ -1191,7 +1191,7 @@ type CancelRunResponse struct {
 
 func (x *CancelRunResponse) Reset() {
 	*x = CancelRunResponse{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[17]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1203,7 +1203,7 @@ func (x *CancelRunResponse) String() string {
 func (*CancelRunResponse) ProtoMessage() {}
 
 func (x *CancelRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[17]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1216,7 +1216,7 @@ func (x *CancelRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelRunResponse.ProtoReflect.Descriptor instead.
 func (*CancelRunResponse) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{17}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{17}
 }
 
 // WorkflowEvent represents an event in a workflow run's timeline.
@@ -1234,7 +1234,7 @@ type WorkflowEvent struct {
 
 func (x *WorkflowEvent) Reset() {
 	*x = WorkflowEvent{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[18]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1246,7 +1246,7 @@ func (x *WorkflowEvent) String() string {
 func (*WorkflowEvent) ProtoMessage() {}
 
 func (x *WorkflowEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[18]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1259,7 +1259,7 @@ func (x *WorkflowEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowEvent.ProtoReflect.Descriptor instead.
 func (*WorkflowEvent) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{18}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *WorkflowEvent) GetId() string {
@@ -1314,7 +1314,7 @@ type GetRunEventsRequest struct {
 
 func (x *GetRunEventsRequest) Reset() {
 	*x = GetRunEventsRequest{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[19]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1326,7 +1326,7 @@ func (x *GetRunEventsRequest) String() string {
 func (*GetRunEventsRequest) ProtoMessage() {}
 
 func (x *GetRunEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[19]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1339,7 +1339,7 @@ func (x *GetRunEventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRunEventsRequest.ProtoReflect.Descriptor instead.
 func (*GetRunEventsRequest) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{19}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetRunEventsRequest) GetRunId() string {
@@ -1359,7 +1359,7 @@ type GetRunEventsResponse struct {
 
 func (x *GetRunEventsResponse) Reset() {
 	*x = GetRunEventsResponse{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[20]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1371,7 +1371,7 @@ func (x *GetRunEventsResponse) String() string {
 func (*GetRunEventsResponse) ProtoMessage() {}
 
 func (x *GetRunEventsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[20]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1384,7 +1384,7 @@ func (x *GetRunEventsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRunEventsResponse.ProtoReflect.Descriptor instead.
 func (*GetRunEventsResponse) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{20}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetRunEventsResponse) GetEvents() []*WorkflowEvent {
@@ -1404,7 +1404,7 @@ type StreamRunHistoryRequest struct {
 
 func (x *StreamRunHistoryRequest) Reset() {
 	*x = StreamRunHistoryRequest{}
-	mi := &file_kronos_v1_kronos_proto_msgTypes[21]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1416,7 +1416,7 @@ func (x *StreamRunHistoryRequest) String() string {
 func (*StreamRunHistoryRequest) ProtoMessage() {}
 
 func (x *StreamRunHistoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kronos_v1_kronos_proto_msgTypes[21]
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1429,7 +1429,7 @@ func (x *StreamRunHistoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamRunHistoryRequest.ProtoReflect.Descriptor instead.
 func (*StreamRunHistoryRequest) Descriptor() ([]byte, []int) {
-	return file_kronos_v1_kronos_proto_rawDescGZIP(), []int{21}
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *StreamRunHistoryRequest) GetRunId() string {
@@ -1439,11 +1439,110 @@ func (x *StreamRunHistoryRequest) GetRunId() string {
 	return ""
 }
 
-var File_kronos_v1_kronos_proto protoreflect.FileDescriptor
+// ForkRunRequest forks a workflow run from a given step, reusing recorded
+// outputs of all upstream steps and scheduling downstream steps for re-execution.
+type ForkRunRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RunId         string                 `protobuf:"bytes,1,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`          // required: the run to fork
+	FromStep      string                 `protobuf:"bytes,2,opt,name=from_step,json=fromStep,proto3" json:"from_step,omitempty"` // required: step name to fork from (exclusive: this step and downstream re-execute)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
 
-const file_kronos_v1_kronos_proto_rawDesc = "" +
+func (x *ForkRunRequest) Reset() {
+	*x = ForkRunRequest{}
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ForkRunRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ForkRunRequest) ProtoMessage() {}
+
+func (x *ForkRunRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ForkRunRequest.ProtoReflect.Descriptor instead.
+func (*ForkRunRequest) Descriptor() ([]byte, []int) {
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ForkRunRequest) GetRunId() string {
+	if x != nil {
+		return x.RunId
+	}
+	return ""
+}
+
+func (x *ForkRunRequest) GetFromStep() string {
+	if x != nil {
+		return x.FromStep
+	}
+	return ""
+}
+
+// ForkRunResponse
+type ForkRunResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ForkedRunId   string                 `protobuf:"bytes,1,opt,name=forked_run_id,json=forkedRunId,proto3" json:"forked_run_id,omitempty"` // ID of the newly created forked run
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ForkRunResponse) Reset() {
+	*x = ForkRunResponse{}
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ForkRunResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ForkRunResponse) ProtoMessage() {}
+
+func (x *ForkRunResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ForkRunResponse.ProtoReflect.Descriptor instead.
+func (*ForkRunResponse) Descriptor() ([]byte, []int) {
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *ForkRunResponse) GetForkedRunId() string {
+	if x != nil {
+		return x.ForkedRunId
+	}
+	return ""
+}
+
+var File_proto_kronos_v1_kronos_proto protoreflect.FileDescriptor
+
+const file_proto_kronos_v1_kronos_proto_rawDesc = "" +
 	"\n" +
-	"\x16kronos/v1/kronos.proto\x12\tkronos.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xae\x03\n" +
+	"\x1cproto/kronos/v1/kronos.proto\x12\tkronos.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xae\x03\n" +
 	"\x03Job\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
@@ -1541,7 +1640,12 @@ const file_kronos_v1_kronos_proto_rawDesc = "" +
 	"\x14GetRunEventsResponse\x120\n" +
 	"\x06events\x18\x01 \x03(\v2\x18.kronos.v1.WorkflowEventR\x06events\"0\n" +
 	"\x17StreamRunHistoryRequest\x12\x15\n" +
-	"\x06run_id\x18\x01 \x01(\tR\x05runId*\xb7\x01\n" +
+	"\x06run_id\x18\x01 \x01(\tR\x05runId\"D\n" +
+	"\x0eForkRunRequest\x12\x15\n" +
+	"\x06run_id\x18\x01 \x01(\tR\x05runId\x12\x1b\n" +
+	"\tfrom_step\x18\x02 \x01(\tR\bfromStep\"5\n" +
+	"\x0fForkRunResponse\x12\"\n" +
+	"\rforked_run_id\x18\x01 \x01(\tR\vforkedRunId*\xb7\x01\n" +
 	"\tJobStatus\x12\x1a\n" +
 	"\x16JOB_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12JOB_STATUS_PENDING\x10\x01\x12\x16\n" +
@@ -1557,7 +1661,7 @@ const file_kronos_v1_kronos_proto_rawDesc = "" +
 	"\x1dWORKFLOW_RUN_STATUS_COMPLETED\x10\x03\x12\x1e\n" +
 	"\x1aWORKFLOW_RUN_STATUS_FAILED\x10\x04\x12!\n" +
 	"\x1dWORKFLOW_RUN_STATUS_CANCELLED\x10\x05\x12\x1e\n" +
-	"\x1aWORKFLOW_RUN_STATUS_FORKED\x10\x062\xe8\x05\n" +
+	"\x1aWORKFLOW_RUN_STATUS_FORKED\x10\x062\xaa\x06\n" +
 	"\rKronosService\x12F\n" +
 	"\tSubmitJob\x12\x1b.kronos.v1.SubmitJobRequest\x1a\x1c.kronos.v1.SubmitJobResponse\x12=\n" +
 	"\x06GetJob\x12\x18.kronos.v1.GetJobRequest\x1a\x19.kronos.v1.GetJobResponse\x12C\n" +
@@ -1568,23 +1672,24 @@ const file_kronos_v1_kronos_proto_rawDesc = "" +
 	"\bListRuns\x12\x1a.kronos.v1.ListRunsRequest\x1a\x1b.kronos.v1.ListRunsResponse\x12F\n" +
 	"\tCancelRun\x12\x1b.kronos.v1.CancelRunRequest\x1a\x1c.kronos.v1.CancelRunResponse\x12O\n" +
 	"\fGetRunEvents\x12\x1e.kronos.v1.GetRunEventsRequest\x1a\x1f.kronos.v1.GetRunEventsResponse\x12R\n" +
-	"\x10StreamRunHistory\x12\".kronos.v1.StreamRunHistoryRequest\x1a\x18.kronos.v1.WorkflowEvent0\x01B8Z6github.com/rahulmodugula/kronos/gen/kronos/v1;kronosv1b\x06proto3"
+	"\x10StreamRunHistory\x12\".kronos.v1.StreamRunHistoryRequest\x1a\x18.kronos.v1.WorkflowEvent0\x01\x12@\n" +
+	"\aForkRun\x12\x19.kronos.v1.ForkRunRequest\x1a\x1a.kronos.v1.ForkRunResponseB8Z6github.com/rahulmodugula/kronos/gen/kronos/v1;kronosv1b\x06proto3"
 
 var (
-	file_kronos_v1_kronos_proto_rawDescOnce sync.Once
-	file_kronos_v1_kronos_proto_rawDescData []byte
+	file_proto_kronos_v1_kronos_proto_rawDescOnce sync.Once
+	file_proto_kronos_v1_kronos_proto_rawDescData []byte
 )
 
-func file_kronos_v1_kronos_proto_rawDescGZIP() []byte {
-	file_kronos_v1_kronos_proto_rawDescOnce.Do(func() {
-		file_kronos_v1_kronos_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_kronos_v1_kronos_proto_rawDesc), len(file_kronos_v1_kronos_proto_rawDesc)))
+func file_proto_kronos_v1_kronos_proto_rawDescGZIP() []byte {
+	file_proto_kronos_v1_kronos_proto_rawDescOnce.Do(func() {
+		file_proto_kronos_v1_kronos_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_kronos_v1_kronos_proto_rawDesc), len(file_proto_kronos_v1_kronos_proto_rawDesc)))
 	})
-	return file_kronos_v1_kronos_proto_rawDescData
+	return file_proto_kronos_v1_kronos_proto_rawDescData
 }
 
-var file_kronos_v1_kronos_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_kronos_v1_kronos_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
-var file_kronos_v1_kronos_proto_goTypes = []any{
+var file_proto_kronos_v1_kronos_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_proto_kronos_v1_kronos_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
+var file_proto_kronos_v1_kronos_proto_goTypes = []any{
 	(JobStatus)(0),                  // 0: kronos.v1.JobStatus
 	(WorkflowRunStatus)(0),          // 1: kronos.v1.WorkflowRunStatus
 	(*Job)(nil),                     // 2: kronos.v1.Job
@@ -1609,26 +1714,28 @@ var file_kronos_v1_kronos_proto_goTypes = []any{
 	(*GetRunEventsRequest)(nil),     // 21: kronos.v1.GetRunEventsRequest
 	(*GetRunEventsResponse)(nil),    // 22: kronos.v1.GetRunEventsResponse
 	(*StreamRunHistoryRequest)(nil), // 23: kronos.v1.StreamRunHistoryRequest
-	(*timestamppb.Timestamp)(nil),   // 24: google.protobuf.Timestamp
+	(*ForkRunRequest)(nil),          // 24: kronos.v1.ForkRunRequest
+	(*ForkRunResponse)(nil),         // 25: kronos.v1.ForkRunResponse
+	(*timestamppb.Timestamp)(nil),   // 26: google.protobuf.Timestamp
 }
-var file_kronos_v1_kronos_proto_depIdxs = []int32{
+var file_proto_kronos_v1_kronos_proto_depIdxs = []int32{
 	0,  // 0: kronos.v1.Job.status:type_name -> kronos.v1.JobStatus
-	24, // 1: kronos.v1.Job.scheduled_at:type_name -> google.protobuf.Timestamp
-	24, // 2: kronos.v1.Job.created_at:type_name -> google.protobuf.Timestamp
-	24, // 3: kronos.v1.Job.updated_at:type_name -> google.protobuf.Timestamp
-	24, // 4: kronos.v1.SubmitJobRequest.scheduled_at:type_name -> google.protobuf.Timestamp
+	26, // 1: kronos.v1.Job.scheduled_at:type_name -> google.protobuf.Timestamp
+	26, // 2: kronos.v1.Job.created_at:type_name -> google.protobuf.Timestamp
+	26, // 3: kronos.v1.Job.updated_at:type_name -> google.protobuf.Timestamp
+	26, // 4: kronos.v1.SubmitJobRequest.scheduled_at:type_name -> google.protobuf.Timestamp
 	2,  // 5: kronos.v1.GetJobResponse.job:type_name -> kronos.v1.Job
 	0,  // 6: kronos.v1.ListJobsRequest.status:type_name -> kronos.v1.JobStatus
 	2,  // 7: kronos.v1.ListJobsResponse.jobs:type_name -> kronos.v1.Job
 	1,  // 8: kronos.v1.WorkflowRun.status:type_name -> kronos.v1.WorkflowRunStatus
-	24, // 9: kronos.v1.WorkflowRun.started_at:type_name -> google.protobuf.Timestamp
-	24, // 10: kronos.v1.WorkflowRun.finished_at:type_name -> google.protobuf.Timestamp
-	24, // 11: kronos.v1.WorkflowRun.created_at:type_name -> google.protobuf.Timestamp
-	24, // 12: kronos.v1.WorkflowRun.updated_at:type_name -> google.protobuf.Timestamp
+	26, // 9: kronos.v1.WorkflowRun.started_at:type_name -> google.protobuf.Timestamp
+	26, // 10: kronos.v1.WorkflowRun.finished_at:type_name -> google.protobuf.Timestamp
+	26, // 11: kronos.v1.WorkflowRun.created_at:type_name -> google.protobuf.Timestamp
+	26, // 12: kronos.v1.WorkflowRun.updated_at:type_name -> google.protobuf.Timestamp
 	11, // 13: kronos.v1.GetRunResponse.run:type_name -> kronos.v1.WorkflowRun
 	1,  // 14: kronos.v1.ListRunsRequest.status:type_name -> kronos.v1.WorkflowRunStatus
 	11, // 15: kronos.v1.ListRunsResponse.runs:type_name -> kronos.v1.WorkflowRun
-	24, // 16: kronos.v1.WorkflowEvent.ts:type_name -> google.protobuf.Timestamp
+	26, // 16: kronos.v1.WorkflowEvent.ts:type_name -> google.protobuf.Timestamp
 	20, // 17: kronos.v1.GetRunEventsResponse.events:type_name -> kronos.v1.WorkflowEvent
 	3,  // 18: kronos.v1.KronosService.SubmitJob:input_type -> kronos.v1.SubmitJobRequest
 	5,  // 19: kronos.v1.KronosService.GetJob:input_type -> kronos.v1.GetJobRequest
@@ -1640,44 +1747,46 @@ var file_kronos_v1_kronos_proto_depIdxs = []int32{
 	18, // 25: kronos.v1.KronosService.CancelRun:input_type -> kronos.v1.CancelRunRequest
 	21, // 26: kronos.v1.KronosService.GetRunEvents:input_type -> kronos.v1.GetRunEventsRequest
 	23, // 27: kronos.v1.KronosService.StreamRunHistory:input_type -> kronos.v1.StreamRunHistoryRequest
-	4,  // 28: kronos.v1.KronosService.SubmitJob:output_type -> kronos.v1.SubmitJobResponse
-	6,  // 29: kronos.v1.KronosService.GetJob:output_type -> kronos.v1.GetJobResponse
-	8,  // 30: kronos.v1.KronosService.ListJobs:output_type -> kronos.v1.ListJobsResponse
-	10, // 31: kronos.v1.KronosService.CancelJob:output_type -> kronos.v1.CancelJobResponse
-	13, // 32: kronos.v1.KronosService.StartWorkflow:output_type -> kronos.v1.StartWorkflowResponse
-	15, // 33: kronos.v1.KronosService.GetRun:output_type -> kronos.v1.GetRunResponse
-	17, // 34: kronos.v1.KronosService.ListRuns:output_type -> kronos.v1.ListRunsResponse
-	19, // 35: kronos.v1.KronosService.CancelRun:output_type -> kronos.v1.CancelRunResponse
-	22, // 36: kronos.v1.KronosService.GetRunEvents:output_type -> kronos.v1.GetRunEventsResponse
-	20, // 37: kronos.v1.KronosService.StreamRunHistory:output_type -> kronos.v1.WorkflowEvent
-	28, // [28:38] is the sub-list for method output_type
-	18, // [18:28] is the sub-list for method input_type
+	24, // 28: kronos.v1.KronosService.ForkRun:input_type -> kronos.v1.ForkRunRequest
+	4,  // 29: kronos.v1.KronosService.SubmitJob:output_type -> kronos.v1.SubmitJobResponse
+	6,  // 30: kronos.v1.KronosService.GetJob:output_type -> kronos.v1.GetJobResponse
+	8,  // 31: kronos.v1.KronosService.ListJobs:output_type -> kronos.v1.ListJobsResponse
+	10, // 32: kronos.v1.KronosService.CancelJob:output_type -> kronos.v1.CancelJobResponse
+	13, // 33: kronos.v1.KronosService.StartWorkflow:output_type -> kronos.v1.StartWorkflowResponse
+	15, // 34: kronos.v1.KronosService.GetRun:output_type -> kronos.v1.GetRunResponse
+	17, // 35: kronos.v1.KronosService.ListRuns:output_type -> kronos.v1.ListRunsResponse
+	19, // 36: kronos.v1.KronosService.CancelRun:output_type -> kronos.v1.CancelRunResponse
+	22, // 37: kronos.v1.KronosService.GetRunEvents:output_type -> kronos.v1.GetRunEventsResponse
+	20, // 38: kronos.v1.KronosService.StreamRunHistory:output_type -> kronos.v1.WorkflowEvent
+	25, // 39: kronos.v1.KronosService.ForkRun:output_type -> kronos.v1.ForkRunResponse
+	29, // [29:40] is the sub-list for method output_type
+	18, // [18:29] is the sub-list for method input_type
 	18, // [18:18] is the sub-list for extension type_name
 	18, // [18:18] is the sub-list for extension extendee
 	0,  // [0:18] is the sub-list for field type_name
 }
 
-func init() { file_kronos_v1_kronos_proto_init() }
-func file_kronos_v1_kronos_proto_init() {
-	if File_kronos_v1_kronos_proto != nil {
+func init() { file_proto_kronos_v1_kronos_proto_init() }
+func file_proto_kronos_v1_kronos_proto_init() {
+	if File_proto_kronos_v1_kronos_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_kronos_v1_kronos_proto_rawDesc), len(file_kronos_v1_kronos_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_kronos_v1_kronos_proto_rawDesc), len(file_proto_kronos_v1_kronos_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   22,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_kronos_v1_kronos_proto_goTypes,
-		DependencyIndexes: file_kronos_v1_kronos_proto_depIdxs,
-		EnumInfos:         file_kronos_v1_kronos_proto_enumTypes,
-		MessageInfos:      file_kronos_v1_kronos_proto_msgTypes,
+		GoTypes:           file_proto_kronos_v1_kronos_proto_goTypes,
+		DependencyIndexes: file_proto_kronos_v1_kronos_proto_depIdxs,
+		EnumInfos:         file_proto_kronos_v1_kronos_proto_enumTypes,
+		MessageInfos:      file_proto_kronos_v1_kronos_proto_msgTypes,
 	}.Build()
-	File_kronos_v1_kronos_proto = out.File
-	file_kronos_v1_kronos_proto_goTypes = nil
-	file_kronos_v1_kronos_proto_depIdxs = nil
+	File_proto_kronos_v1_kronos_proto = out.File
+	file_proto_kronos_v1_kronos_proto_goTypes = nil
+	file_proto_kronos_v1_kronos_proto_depIdxs = nil
 }

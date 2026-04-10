@@ -1439,6 +1439,105 @@ func (x *StreamRunHistoryRequest) GetRunId() string {
 	return ""
 }
 
+// ForkRunRequest forks a workflow run from a given step, reusing recorded
+// outputs of all upstream steps and scheduling downstream steps for re-execution.
+type ForkRunRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RunId         string                 `protobuf:"bytes,1,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`          // required: the run to fork
+	FromStep      string                 `protobuf:"bytes,2,opt,name=from_step,json=fromStep,proto3" json:"from_step,omitempty"` // required: step name to fork from (exclusive: this step and downstream re-execute)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ForkRunRequest) Reset() {
+	*x = ForkRunRequest{}
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ForkRunRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ForkRunRequest) ProtoMessage() {}
+
+func (x *ForkRunRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ForkRunRequest.ProtoReflect.Descriptor instead.
+func (*ForkRunRequest) Descriptor() ([]byte, []int) {
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ForkRunRequest) GetRunId() string {
+	if x != nil {
+		return x.RunId
+	}
+	return ""
+}
+
+func (x *ForkRunRequest) GetFromStep() string {
+	if x != nil {
+		return x.FromStep
+	}
+	return ""
+}
+
+// ForkRunResponse
+type ForkRunResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ForkedRunId   string                 `protobuf:"bytes,1,opt,name=forked_run_id,json=forkedRunId,proto3" json:"forked_run_id,omitempty"` // ID of the newly created forked run
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ForkRunResponse) Reset() {
+	*x = ForkRunResponse{}
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ForkRunResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ForkRunResponse) ProtoMessage() {}
+
+func (x *ForkRunResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kronos_v1_kronos_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ForkRunResponse.ProtoReflect.Descriptor instead.
+func (*ForkRunResponse) Descriptor() ([]byte, []int) {
+	return file_proto_kronos_v1_kronos_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *ForkRunResponse) GetForkedRunId() string {
+	if x != nil {
+		return x.ForkedRunId
+	}
+	return ""
+}
+
 var File_proto_kronos_v1_kronos_proto protoreflect.FileDescriptor
 
 const file_proto_kronos_v1_kronos_proto_rawDesc = "" +
@@ -1541,7 +1640,12 @@ const file_proto_kronos_v1_kronos_proto_rawDesc = "" +
 	"\x14GetRunEventsResponse\x120\n" +
 	"\x06events\x18\x01 \x03(\v2\x18.kronos.v1.WorkflowEventR\x06events\"0\n" +
 	"\x17StreamRunHistoryRequest\x12\x15\n" +
-	"\x06run_id\x18\x01 \x01(\tR\x05runId*\xb7\x01\n" +
+	"\x06run_id\x18\x01 \x01(\tR\x05runId\"D\n" +
+	"\x0eForkRunRequest\x12\x15\n" +
+	"\x06run_id\x18\x01 \x01(\tR\x05runId\x12\x1b\n" +
+	"\tfrom_step\x18\x02 \x01(\tR\bfromStep\"5\n" +
+	"\x0fForkRunResponse\x12\"\n" +
+	"\rforked_run_id\x18\x01 \x01(\tR\vforkedRunId*\xb7\x01\n" +
 	"\tJobStatus\x12\x1a\n" +
 	"\x16JOB_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12JOB_STATUS_PENDING\x10\x01\x12\x16\n" +
@@ -1557,7 +1661,7 @@ const file_proto_kronos_v1_kronos_proto_rawDesc = "" +
 	"\x1dWORKFLOW_RUN_STATUS_COMPLETED\x10\x03\x12\x1e\n" +
 	"\x1aWORKFLOW_RUN_STATUS_FAILED\x10\x04\x12!\n" +
 	"\x1dWORKFLOW_RUN_STATUS_CANCELLED\x10\x05\x12\x1e\n" +
-	"\x1aWORKFLOW_RUN_STATUS_FORKED\x10\x062\xe8\x05\n" +
+	"\x1aWORKFLOW_RUN_STATUS_FORKED\x10\x062\xaa\x06\n" +
 	"\rKronosService\x12F\n" +
 	"\tSubmitJob\x12\x1b.kronos.v1.SubmitJobRequest\x1a\x1c.kronos.v1.SubmitJobResponse\x12=\n" +
 	"\x06GetJob\x12\x18.kronos.v1.GetJobRequest\x1a\x19.kronos.v1.GetJobResponse\x12C\n" +
@@ -1568,7 +1672,8 @@ const file_proto_kronos_v1_kronos_proto_rawDesc = "" +
 	"\bListRuns\x12\x1a.kronos.v1.ListRunsRequest\x1a\x1b.kronos.v1.ListRunsResponse\x12F\n" +
 	"\tCancelRun\x12\x1b.kronos.v1.CancelRunRequest\x1a\x1c.kronos.v1.CancelRunResponse\x12O\n" +
 	"\fGetRunEvents\x12\x1e.kronos.v1.GetRunEventsRequest\x1a\x1f.kronos.v1.GetRunEventsResponse\x12R\n" +
-	"\x10StreamRunHistory\x12\".kronos.v1.StreamRunHistoryRequest\x1a\x18.kronos.v1.WorkflowEvent0\x01B8Z6github.com/rahulmodugula/kronos/gen/kronos/v1;kronosv1b\x06proto3"
+	"\x10StreamRunHistory\x12\".kronos.v1.StreamRunHistoryRequest\x1a\x18.kronos.v1.WorkflowEvent0\x01\x12@\n" +
+	"\aForkRun\x12\x19.kronos.v1.ForkRunRequest\x1a\x1a.kronos.v1.ForkRunResponseB8Z6github.com/rahulmodugula/kronos/gen/kronos/v1;kronosv1b\x06proto3"
 
 var (
 	file_proto_kronos_v1_kronos_proto_rawDescOnce sync.Once
@@ -1583,7 +1688,7 @@ func file_proto_kronos_v1_kronos_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_kronos_v1_kronos_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_proto_kronos_v1_kronos_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_proto_kronos_v1_kronos_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_proto_kronos_v1_kronos_proto_goTypes = []any{
 	(JobStatus)(0),                  // 0: kronos.v1.JobStatus
 	(WorkflowRunStatus)(0),          // 1: kronos.v1.WorkflowRunStatus
@@ -1609,26 +1714,28 @@ var file_proto_kronos_v1_kronos_proto_goTypes = []any{
 	(*GetRunEventsRequest)(nil),     // 21: kronos.v1.GetRunEventsRequest
 	(*GetRunEventsResponse)(nil),    // 22: kronos.v1.GetRunEventsResponse
 	(*StreamRunHistoryRequest)(nil), // 23: kronos.v1.StreamRunHistoryRequest
-	(*timestamppb.Timestamp)(nil),   // 24: google.protobuf.Timestamp
+	(*ForkRunRequest)(nil),          // 24: kronos.v1.ForkRunRequest
+	(*ForkRunResponse)(nil),         // 25: kronos.v1.ForkRunResponse
+	(*timestamppb.Timestamp)(nil),   // 26: google.protobuf.Timestamp
 }
 var file_proto_kronos_v1_kronos_proto_depIdxs = []int32{
 	0,  // 0: kronos.v1.Job.status:type_name -> kronos.v1.JobStatus
-	24, // 1: kronos.v1.Job.scheduled_at:type_name -> google.protobuf.Timestamp
-	24, // 2: kronos.v1.Job.created_at:type_name -> google.protobuf.Timestamp
-	24, // 3: kronos.v1.Job.updated_at:type_name -> google.protobuf.Timestamp
-	24, // 4: kronos.v1.SubmitJobRequest.scheduled_at:type_name -> google.protobuf.Timestamp
+	26, // 1: kronos.v1.Job.scheduled_at:type_name -> google.protobuf.Timestamp
+	26, // 2: kronos.v1.Job.created_at:type_name -> google.protobuf.Timestamp
+	26, // 3: kronos.v1.Job.updated_at:type_name -> google.protobuf.Timestamp
+	26, // 4: kronos.v1.SubmitJobRequest.scheduled_at:type_name -> google.protobuf.Timestamp
 	2,  // 5: kronos.v1.GetJobResponse.job:type_name -> kronos.v1.Job
 	0,  // 6: kronos.v1.ListJobsRequest.status:type_name -> kronos.v1.JobStatus
 	2,  // 7: kronos.v1.ListJobsResponse.jobs:type_name -> kronos.v1.Job
 	1,  // 8: kronos.v1.WorkflowRun.status:type_name -> kronos.v1.WorkflowRunStatus
-	24, // 9: kronos.v1.WorkflowRun.started_at:type_name -> google.protobuf.Timestamp
-	24, // 10: kronos.v1.WorkflowRun.finished_at:type_name -> google.protobuf.Timestamp
-	24, // 11: kronos.v1.WorkflowRun.created_at:type_name -> google.protobuf.Timestamp
-	24, // 12: kronos.v1.WorkflowRun.updated_at:type_name -> google.protobuf.Timestamp
+	26, // 9: kronos.v1.WorkflowRun.started_at:type_name -> google.protobuf.Timestamp
+	26, // 10: kronos.v1.WorkflowRun.finished_at:type_name -> google.protobuf.Timestamp
+	26, // 11: kronos.v1.WorkflowRun.created_at:type_name -> google.protobuf.Timestamp
+	26, // 12: kronos.v1.WorkflowRun.updated_at:type_name -> google.protobuf.Timestamp
 	11, // 13: kronos.v1.GetRunResponse.run:type_name -> kronos.v1.WorkflowRun
 	1,  // 14: kronos.v1.ListRunsRequest.status:type_name -> kronos.v1.WorkflowRunStatus
 	11, // 15: kronos.v1.ListRunsResponse.runs:type_name -> kronos.v1.WorkflowRun
-	24, // 16: kronos.v1.WorkflowEvent.ts:type_name -> google.protobuf.Timestamp
+	26, // 16: kronos.v1.WorkflowEvent.ts:type_name -> google.protobuf.Timestamp
 	20, // 17: kronos.v1.GetRunEventsResponse.events:type_name -> kronos.v1.WorkflowEvent
 	3,  // 18: kronos.v1.KronosService.SubmitJob:input_type -> kronos.v1.SubmitJobRequest
 	5,  // 19: kronos.v1.KronosService.GetJob:input_type -> kronos.v1.GetJobRequest
@@ -1640,18 +1747,20 @@ var file_proto_kronos_v1_kronos_proto_depIdxs = []int32{
 	18, // 25: kronos.v1.KronosService.CancelRun:input_type -> kronos.v1.CancelRunRequest
 	21, // 26: kronos.v1.KronosService.GetRunEvents:input_type -> kronos.v1.GetRunEventsRequest
 	23, // 27: kronos.v1.KronosService.StreamRunHistory:input_type -> kronos.v1.StreamRunHistoryRequest
-	4,  // 28: kronos.v1.KronosService.SubmitJob:output_type -> kronos.v1.SubmitJobResponse
-	6,  // 29: kronos.v1.KronosService.GetJob:output_type -> kronos.v1.GetJobResponse
-	8,  // 30: kronos.v1.KronosService.ListJobs:output_type -> kronos.v1.ListJobsResponse
-	10, // 31: kronos.v1.KronosService.CancelJob:output_type -> kronos.v1.CancelJobResponse
-	13, // 32: kronos.v1.KronosService.StartWorkflow:output_type -> kronos.v1.StartWorkflowResponse
-	15, // 33: kronos.v1.KronosService.GetRun:output_type -> kronos.v1.GetRunResponse
-	17, // 34: kronos.v1.KronosService.ListRuns:output_type -> kronos.v1.ListRunsResponse
-	19, // 35: kronos.v1.KronosService.CancelRun:output_type -> kronos.v1.CancelRunResponse
-	22, // 36: kronos.v1.KronosService.GetRunEvents:output_type -> kronos.v1.GetRunEventsResponse
-	20, // 37: kronos.v1.KronosService.StreamRunHistory:output_type -> kronos.v1.WorkflowEvent
-	28, // [28:38] is the sub-list for method output_type
-	18, // [18:28] is the sub-list for method input_type
+	24, // 28: kronos.v1.KronosService.ForkRun:input_type -> kronos.v1.ForkRunRequest
+	4,  // 29: kronos.v1.KronosService.SubmitJob:output_type -> kronos.v1.SubmitJobResponse
+	6,  // 30: kronos.v1.KronosService.GetJob:output_type -> kronos.v1.GetJobResponse
+	8,  // 31: kronos.v1.KronosService.ListJobs:output_type -> kronos.v1.ListJobsResponse
+	10, // 32: kronos.v1.KronosService.CancelJob:output_type -> kronos.v1.CancelJobResponse
+	13, // 33: kronos.v1.KronosService.StartWorkflow:output_type -> kronos.v1.StartWorkflowResponse
+	15, // 34: kronos.v1.KronosService.GetRun:output_type -> kronos.v1.GetRunResponse
+	17, // 35: kronos.v1.KronosService.ListRuns:output_type -> kronos.v1.ListRunsResponse
+	19, // 36: kronos.v1.KronosService.CancelRun:output_type -> kronos.v1.CancelRunResponse
+	22, // 37: kronos.v1.KronosService.GetRunEvents:output_type -> kronos.v1.GetRunEventsResponse
+	20, // 38: kronos.v1.KronosService.StreamRunHistory:output_type -> kronos.v1.WorkflowEvent
+	25, // 39: kronos.v1.KronosService.ForkRun:output_type -> kronos.v1.ForkRunResponse
+	29, // [29:40] is the sub-list for method output_type
+	18, // [18:29] is the sub-list for method input_type
 	18, // [18:18] is the sub-list for extension type_name
 	18, // [18:18] is the sub-list for extension extendee
 	0,  // [0:18] is the sub-list for field type_name
@@ -1668,7 +1777,7 @@ func file_proto_kronos_v1_kronos_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_kronos_v1_kronos_proto_rawDesc), len(file_proto_kronos_v1_kronos_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   22,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
