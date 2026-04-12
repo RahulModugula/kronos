@@ -1,0 +1,32 @@
+[[define "partials/timeline.html"]]
+<div class="panel" style="overflow:hidden;display:flex;flex-direction:column">
+  <div class="panel-header">Timeline</div>
+  <div style="padding:0.75rem">
+    <div class="timeline-bar" @click="seekTo(Math.round($event.offsetX / $el.clientWidth * (events.length - 1)))">
+      <template x-for="(evt, i) in events" :key="i">
+        <div class="timeline-marker"
+             :class="{
+               'timeline-marker-completed': evt.event_type === 'step_completed' || evt.event_type === 'run_completed',
+               'timeline-marker-failed': evt.event_type === 'step_failed' || evt.event_type === 'run_failed',
+               'timeline-marker-running': evt.event_type === 'step_started'
+             }"
+             :style="`left:${(i / Math.max(events.length - 1, 1)) * 100}%`"
+             @click.stop="seekTo(evt.seq)">
+        </div>
+      </template>
+      <div class="timeline-playhead" :style="`left:${playheadSeq >= 0 ? (events.findIndex(e => e.seq === playheadSeq) / Math.max(events.length - 1, 1)) * 100 : 0}%`"></div>
+    </div>
+  </div>
+  <div class="panel-body" style="flex:1;overflow-y:auto">
+    <ul class="event-list">
+      <template x-for="evt in events" :key="evt.seq">
+        <li class="event-item" @click="seekTo(evt.seq)" :style="playheadSeq === evt.seq ? 'background:var(--bg-3)' : ''">
+          <span class="event-time" x-text="new Date(evt.ts).toLocaleTimeString()"></span>
+          <span class="event-type" x-text="evt.event_type"></span>
+          <span x-text="evt.payload?.step_name || ''" style="margin-left:0.5rem"></span>
+        </li>
+      </template>
+    </ul>
+  </div>
+</div>
+[[end]]

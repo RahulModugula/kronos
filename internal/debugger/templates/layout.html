@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>[[block "title" .]]Kronos Debugger[[end]]</title>
+  <link rel="stylesheet" href="/debugger/static/css/app.css">
+  <script src="/debugger/static/js/app.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js" defer></script>
+</head>
+<body>
+<div class="layout">
+  <nav class="nav">
+    <a href="/debugger/" class="nav-brand">Kronos <span>Debugger</span></a>
+    <a href="/debugger/" class="[[if eq .ActivePage "runs"]]active[[end]]">Runs</a>
+    <div class="nav-right">
+      <span class="uuid" style="font-size:0.7rem">v1.0.0</span>
+    </div>
+  </nav>
+  <main class="main">
+    [[block "content" .]][[end]]
+  </main>
+</div>
+</body>
+</html>

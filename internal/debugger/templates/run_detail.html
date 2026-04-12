@@ -1,0 +1,31 @@
+[[template "layout.html" .]]
+
+[[define "title"]]Run [[truncate .Run.ID 8]] - Kronos Debugger[[end]]
+
+[[define "content"]]
+<div x-data="runDetail('[[.Run.ID]]')" x-init="init()">
+  <div class="run-header">
+    <div class="run-header-left">
+      <a href="/debugger/" style="color:var(--text-2);font-size:0.85rem">&larr; Runs</a>
+      <h2>[[.Run.WorkflowName]]</h2>
+      <span class="badge badge-[[.Run.Status]]">[[.Run.Status]]</span>
+      <span class="uuid">[[.Run.ID]]</span>
+    </div>
+    <div style="display:flex;gap:0.5rem;align-items:center">
+      [[if eq .Run.Status "running"]]
+      <span class="live-indicator"><span class="live-dot"></span> Live</span>
+      [[end]]
+      [[if .Run.DurationMs]]
+      <span class="duration">[[.Run.DurationMs]]ms</span>
+      [[end]]
+      <span class="card-meta">[[.Run.TimeAgo]]</span>
+    </div>
+  </div>
+
+  <div class="detail-layout">
+    [[template "partials/step_tree.html" .]]
+    [[template "partials/timeline.html" .]]
+    [[template "partials/step_detail.html" .]]
+  </div>
+</div>
+[[end]]

@@ -1,0 +1,51 @@
+[[template "layout.html" .]]
+
+[[define "title"]]Kronos Debugger - Runs[[end]]
+
+[[define "content"]]
+<div x-data="runsList()">
+  <div class="filters">
+    <select x-model="filterWorkflow" @change="loadRuns()">
+      <option value="">All Workflows</option>
+      [[range .WorkflowNames]]
+      <option value="[[.]]">[[.]][[end]]</option>
+      [[end]]
+    </select>
+    <select x-model="filterStatus" @change="loadRuns()">
+      <option value="">All Status</option>
+      <option value="completed">Completed</option>
+      <option value="running">Running</option>
+      <option value="failed">Failed</option>
+      <option value="pending">Pending</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+  </div>
+
+  <div id="runs-list">
+    [[if .Runs]]
+    [[range .Runs]]
+    <a href="/debugger/runs/[[.ID]]" style="text-decoration:none;color:inherit">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">[[.WorkflowName]]</span>
+          <span class="badge badge-[[.Status]]">[[.Status]]</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:1rem">
+          <span class="uuid">[[truncate .ID 8]]</span>
+          [[if .Duration]]
+          <span class="duration">[[.Duration]]</span>
+          [[end]]
+          <span class="card-meta">[[.TimeAgo]]</span>
+        </div>
+      </div>
+    </a>
+    [[end]]
+    [[else]]
+    <div class="empty-state">
+      <h3>No workflow runs yet</h3>
+      <p>Submit a workflow via gRPC to see runs here.</p>
+    </div>
+    [[end]]
+  </div>
+</div>
+[[end]]

@@ -1,0 +1,46 @@
+[[define "partials/step_detail.html"]]
+<div class="panel">
+  <div class="panel-header">Step Detail</div>
+  <template x-if="selectedStep">
+    <div>
+      <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem">
+          <strong x-text="selectedStep.name"></strong>
+          <span class="badge" :class="'badge-' + selectedStep.status" x-text="selectedStep.status"></span>
+        </div>
+        <div style="display:flex;gap:1rem;font-size:0.8rem;color:var(--text-2)">
+          <span x-show="selectedStep.duration_ms" x-text="'Duration: ' + selectedStep.duration_ms + 'ms'"></span>
+          <span x-show="selectedStep.attempt" x-text="'Attempt: ' + selectedStep.attempt"></span>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab" :class="{'active': activeTab === 'input'}" @click="activeTab = 'input'">Input</div>
+        <div class="tab" :class="{'active': activeTab === 'output'}" @click="activeTab = 'output'">Output</div>
+        <div class="tab" :class="{'active': activeTab === 'error'}" @click="activeTab = 'error'" x-show="selectedStep.error">Error</div>
+      </div>
+      <div class="panel-body">
+        <div x-show="activeTab === 'input'">
+          <div class="json-viewer" x-html="formatJSON(selectedStep.input)" x-show="selectedStep.input"></div>
+          <p x-show="!selectedStep.input" style="color:var(--text-2);font-size:0.85rem">No input recorded</p>
+        </div>
+        <div x-show="activeTab === 'output'">
+          <div class="json-viewer" x-html="formatJSON(selectedStep.output)" x-show="selectedStep.output"></div>
+          <p x-show="!selectedStep.output" style="color:var(--text-2);font-size:0.85rem">No output recorded</p>
+        </div>
+        <div x-show="activeTab === 'error'">
+          <div class="json-viewer" style="color:var(--red)" x-text="selectedStep.error" x-show="selectedStep.error"></div>
+        </div>
+      </div>
+      <div style="padding:0.75rem 1rem;border-top:1px solid var(--border)">
+        <button class="btn btn-primary btn-sm" @click="forkFrom(selectedStep.name)">Fork from here</button>
+      </div>
+    </div>
+  </template>
+  <template x-if="!selectedStep">
+    <div class="empty-state">
+      <h3>Select a step</h3>
+      <p>Click a step in the tree to inspect its details</p>
+    </div>
+  </template>
+</div>
+[[end]]

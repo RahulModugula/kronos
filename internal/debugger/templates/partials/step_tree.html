@@ -1,0 +1,20 @@
+[[define "partials/step_tree.html"]]
+<div class="panel">
+  <div class="panel-header">Steps</div>
+  <div class="panel-body">
+    <ul class="step-list">
+      [[range .Steps]]
+      <li class="step-item" :class="{'active': selectedStep?.name === '[[.Name]]'}" @click="selectStep('[[.Name]]')">
+        <span class="step-icon step-icon-[[.Status]]"></span>
+        <span>[[.Name]]</span>
+        [[if .DurationMs]]
+        <span class="step-duration">[[.DurationMs]]ms</span>
+        [[end]]
+      </li>
+      [[else]]
+      <li style="padding:1rem;color:var(--text-2);font-size:0.85rem">No steps recorded yet</li>
+      [[end]]
+    </ul>
+  </div>
+</div>
+[[end]]
