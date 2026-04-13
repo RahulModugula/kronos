@@ -25,10 +25,12 @@ import (
 	"github.com/rahulmodugula/kronos/internal/api"
 	"github.com/rahulmodugula/kronos/internal/config"
 	"github.com/rahulmodugula/kronos/internal/cron"
+	"github.com/rahulmodugula/kronos/internal/debugger"
 	"github.com/rahulmodugula/kronos/internal/health"
 	"github.com/rahulmodugula/kronos/internal/leader"
 	"github.com/rahulmodugula/kronos/internal/metrics"
 	"github.com/rahulmodugula/kronos/internal/middleware"
+	"github.com/rahulmodugula/kronos/internal/replay"
 	"github.com/rahulmodugula/kronos/internal/retry"
 	"github.com/rahulmodugula/kronos/internal/scheduler"
 	"github.com/rahulmodugula/kronos/internal/store"
@@ -43,6 +45,17 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "replay" {
+		log := zerolog.New(os.Stdout).With().Timestamp().Logger()
+		registry := workflow.NewRegistry()
+		registerWorkflows(registry)
+		if err := replay.RunReplay(os.Args[2:], registry, log); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
+
 	log := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
 	cfg, err := config.Load()
@@ -94,11 +107,15 @@ func main() {
 		}
 	}()
 
-	// Admin HTTP server — dead-letter queue management endpoints
+	// Admin HTTP server — dead-letter queue + debugger UI
 	go func() {
 		adminMux := http.NewServeMux()
 		adminHandler := admin.NewHandler(instrumentedStore, log)
 		adminHandler.Register(adminMux)
+
+		debuggerHandler := debugger.NewHandler(workflowStore, log)
+		debuggerHandler.Register(adminMux)
+
 		log.Info().Str("addr", cfg.AdminAddr).Msg("admin server listening")
 		if err := http.ListenAndServe(cfg.AdminAddr, adminMux); err != nil {
 			log.Error().Err(err).Msg("admin server error")
@@ -202,6 +219,17 @@ func main() {
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatal().Err(err).Msg("gRPC server error")
 	}
+}
+
+func registerWorkflows(reg *workflow.Registry) {
+	wf := workflow.NewWorkflow("example-workflow", "v1").
+		AddStep("step1", func(ctx context.Context, input json.RawMessage) (json.RawMessage, error) {
+			return json.Marshal(map[string]string{"step1": "done"})
+		}, nil).
+		AddStep("step2", func(ctx context.Context, input json.RawMessage) (json.RawMessage, error) {
+			return json.Marshal(map[string]string{"step2": "done"})
+		}, []string{"step1"})
+	reg.Register(wf)
 }
 
 func registerHandlers(r *worker.Registry, log zerolog.Logger, workflowEngine *workflow.Engine) {
